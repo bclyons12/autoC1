@@ -30,6 +30,8 @@ def auto_m3dc1(task='setup',machine='DIII-D',arch='portal'):
 
     if arch is 'portal':
         template = '/p/tsc/blyons/M3D-C1/'
+    if arch is 'saturn':
+        template = '/fusion/projects/m3dc1_results/lyonsbc/'
     else:
         print 'Error: Undefined architecture: arch = '+arch
         return
