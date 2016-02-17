@@ -2,17 +2,17 @@
 Scripts and templates for automatically running M3D-C1
 
 
-***********************
+-------------------------------------------------------------------------------
 autoC1 script
-***********************
+-------------------------------------------------------------------------------
 
 The fundamental python function is autoC1() which has the following call pattern
 
 autoC1(task='all',machine='DIII-D')
 
----------
+*********
 task
----------
+*********
 
 Tasks proceed in the following order. 
 You can skip to a step by setting this keyword to the desired value.
@@ -39,17 +39,17 @@ Folder in which a given step occurs is given with parentheses.
 		   Currently uses ExB rotation and single-fluid only
 		One can also open IDL to examine the results within this step.
 
----------
+*********
 machine
----------
+*********
 
 Name of device to be modeled, so appropriate templates can be found.
 Currently 'DIII-D' [DEFAULT] and 'NSTX-U' are supported.
 
 
-***********************
+-------------------------------------------------------------------------------
 Download and setup
-***********************
+-------------------------------------------------------------------------------
 
 1) Create a base directory to store the autoC1 scripts and templates.
 
@@ -68,9 +68,9 @@ Download and setup
    B) On saturn,   'module load python'
 
 
-***********************
+-------------------------------------------------------------------------------
 Running autoC1
-***********************
+-------------------------------------------------------------------------------
 
 1) Create a new working directory for the current runs
 
