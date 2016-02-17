@@ -61,8 +61,10 @@ Download and setup
 2. Set the AUTOC1_HOME environmental variable to this base directory.
 3. cd to $AUTOC1_HOME
 4. Download autoC1 from github  
-   * On portalr6, run 'git clone git@github.com:bclyons12/autoC1.git'
-   * On saturn,   run 'git clone https://github.com/bclyons12/autoC1.git'
+   * On portalr6, clone with SSH:  'git clone git@github.com:bclyons12/autoC1.git'
+     * [Cloning with SSH](https://help.github.com/articles/which-remote-url-should-i-use/#cloning-with-ssh-urls)
+     * [Finding/generating your SSH key](https://help.github.com/articles/generating-an-ssh-key/)
+   * On saturn, clone with HTTPS:  'git clone https://github.com/bclyons12/autoC1.git'
 5. Import the appropriate python module on your system.  I use:
    * On portalr6, 'module load anaconda'
    * On saturn,   'module load python'
