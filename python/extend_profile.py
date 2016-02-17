@@ -67,6 +67,7 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95):
     ax.set_xlim([psimin,psimax])
     ax.set_ylim([min(prof4.min(),0.),prof2.max()])
 
+    print 'Close figure to continue'
     mpl.show()
     
 #    prof5 = np.loadtxt(filename+'.extended')

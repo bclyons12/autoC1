@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-auto_m3dc1
+autoC1
 
 Script to run M3D-C1 automatically
 
@@ -21,23 +21,13 @@ from extend_profile import extend_profile
 from load_equil import load_equil
 from move_iter import move_iter
 
-def auto_m3dc1(task='setup',machine='DIII-D',arch='portal'):
+def autoC1(task='setup',machine='DIII-D'):
     
     if task is 'all':
         task = 'setup'
-    
-    print(task)
 
-    if arch is 'portal':
-        template = '/p/tsc/blyons/M3D-C1/'
-    elif arch is 'saturn':
-        template = '/fusion/projects/m3dc1_results/lyonsbc/'
-    else:
-        print 'Error: Undefined architecture: arch = '+arch
-        return
 
-    template = template +'auto_m3dc1/templates/'+ machine + '/'
-
+    template = os.environ.get('AUTOC1_HOME')+'/templates/'+ machine + '/'
 
     if task is 'setup':
 
