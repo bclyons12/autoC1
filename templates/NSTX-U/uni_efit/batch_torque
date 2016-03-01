@@ -1,0 +1,16 @@
+#!/bin/bash -vx
+#PBS -l nodes=1:ppn=16
+#PBS -l walltime=00:10:00
+#PBS -N m3dc1_efit
+#PBS -l mem=32000mb
+#PBS -V
+
+cd $PBS_O_WORKDIR
+
+NPROCS=`wc -l < $PBS_NODEFILE`
+
+# Partition mesh
+part_mesh.sh nstxu0.02.smb $NPROCS
+
+/bin/rm -f C1stdout
+mpiexec -n $NPROCS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout

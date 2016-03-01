@@ -29,6 +29,16 @@ def autoC1(task='setup',machine='DIII-D'):
 
     template = os.environ.get('AUTOC1_HOME')+'/templates/'+ machine + '/'
 
+    C1arch = os.environ.get('M3DC1_ARCH')
+
+    if C1arch is 'sunfire.r6':
+        submit_batch = 'sbatch batch_slurm'
+    elif C1arch is 'saturn':
+        submit_batch = 'qsub batch_torque'
+    else:
+        print 'Error: autoC1 does not support M3DC1_ARCH = '+C1arch
+        return 
+
     if task is 'setup':
 
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
@@ -116,7 +126,7 @@ def autoC1(task='setup',machine='DIII-D'):
         
         load_equil('efit/','uni_efit/')
         os.chdir('uni_efit/')
-        call(['sbatch','-J','m3dc1_efit','batch_script'])
+        call(submit_batch)
         print
         
         print  '>>> Please wait for job m3dc1_efit to finish'
@@ -152,8 +162,7 @@ def autoC1(task='setup',machine='DIII-D'):
         
         while next is not 'N':
         
-            call(['sbatch','-J','m3dc1_eq'+str(iter),'batch_script'])
-        
+            call(submit_batch)
             print
             print  '>>> Please wait for job m3dc1_eq'+str(iter)+' to finish'
             raw_input('>>> Press <ENTER> twice when finished')
@@ -221,7 +230,7 @@ def autoC1(task='setup',machine='DIII-D'):
         os.chdir('rw1_adapt/')
         
         
-        call(['sbatch','-J','m3dc1_adapt','batch_script'])
+        call(submit_batch)
         print
         
         print  '>>> Wait for adapted0.smb to be created'
@@ -291,7 +300,7 @@ def autoC1(task='setup',machine='DIII-D'):
             mysh.cp('rw1_adapt/adapted0.smb', 'rw1_equil/adapted0.smb')
             os.chdir('rw1_equil/')
         
-            call(['sbatch','-J','m3dc1_equil','batch_script'])
+            call(submit_batch)
             print
             
             print  '>>> Job m3dc1_equil submitted'
@@ -353,7 +362,7 @@ def autoC1(task='setup',machine='DIII-D'):
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
         
-            call(['sbatch','-J','m3dc1_stab','batch_script'])
+            call(submit_batch)
             print
             print  '>>> Job m3dc1_stab submitted'
             print  '>>> You can do other calculations in the meantime'
@@ -411,7 +420,7 @@ def autoC1(task='setup',machine='DIII-D'):
             os.chdir('eb1_1f_iu/')
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
-            call(['sbatch','-J','m3dc1_iu','batch_script'])
+            call(submit_batch)
             
             os.chdir('..')
             
@@ -422,7 +431,7 @@ def autoC1(task='setup',machine='DIII-D'):
             os.chdir('eb1_1f_il/')
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
-            call(['sbatch','-J','m3dc1_il','batch_script'])
+            call(submit_batch)
                 
             print
             print  '>>> Jobs m3dc1_iu and m3dc1_il submitted'

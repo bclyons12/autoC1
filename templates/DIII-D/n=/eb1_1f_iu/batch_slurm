@@ -2,7 +2,7 @@
 #SBATCH --partition=mque_r6
 #SBATCH --nodes=1
 #SBATCH --ntasks=32
-#SBATCH -J m3dc1_2d
+#SBATCH -J m3dc1_iu
 #SBATCH -t 4:00:00
 #SBATCH --mem 256000
 

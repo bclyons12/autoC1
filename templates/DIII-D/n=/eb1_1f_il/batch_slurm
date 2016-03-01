@@ -1,13 +1,13 @@
 #!/bin/bash -vx
-#SBATCH --partition=kruskal_r6
+#SBATCH --partition=mque_r6
 #SBATCH --nodes=1
-#SBATCH --ntasks=16
-#SBATCH -J m3dc1_2d
-#SBATCH -t 0:10:00
-#SBATCH --mem 32000
+#SBATCH --ntasks=32
+#SBATCH -J m3dc1_il
+#SBATCH -t 4:00:00
+#SBATCH --mem 256000
 
 # Partition mesh
-part_mesh.sh diiid0.02.smb $SLURM_NTASKS
+part_mesh.sh adapted.smb $SLURM_NTASKS
 
 # Run M3D-C1
 rm -f C1stdout
