@@ -59,16 +59,19 @@ Download and setup
 
 1. Create a base directory to store the autoC1 scripts and templates.
 2. Set the AUTOC1_HOME environmental variable to this base directory.
-3. cd to $AUTOC1_HOME
-4. Download autoC1 from github  
+3. Make sure the M3DC1_ARCH enviornmental variable is set properly
+   * On portalr6, M3DC1_ARCH = sunfire.r6
+   * On saturn/iris, M3DC1_ARCH = saturn
+4. cd to $AUTOC1_HOME
+5. Download autoC1 from github
    * On portalr6, clone with SSH:  'git clone git@github.com:bclyons12/autoC1.git'
      * [Cloning with SSH](https://help.github.com/articles/which-remote-url-should-i-use/#cloning-with-ssh-urls)
      * [Finding/generating your SSH key](https://help.github.com/articles/generating-an-ssh-key/)
-   * On saturn, clone with HTTPS:  'git clone https://github.com/bclyons12/autoC1.git'
-5. Import the appropriate python module on your system.  I use:
+   * On saturn/iris, clone with HTTPS:  'git clone https://github.com/bclyons12/autoC1.git'
+6. Import the appropriate python module on your system.  I use:
    * On portalr6, 'module load anaconda'
-   * On saturn,   'module load python'
-6. Add $AUTOC1_HOME/python/ to your PYTHONPATH environmental variable
+   * On saturn/iris,   'module load python'
+7. Add $AUTOC1_HOME/python/ to your PYTHONPATH environmental variable
 
 
 Running autoC1
