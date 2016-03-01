@@ -23,7 +23,7 @@ from move_iter import move_iter
 
 def autoC1(task='setup',machine='DIII-D'):
     
-    if task is 'all':
+    if task == 'all':
         task = 'setup'
 
 
@@ -31,15 +31,15 @@ def autoC1(task='setup',machine='DIII-D'):
 
     C1arch = os.environ.get('M3DC1_ARCH')
 
-    if C1arch is 'sunfire.r6':
-        submit_batch = 'sbatch batch_slurm'
-    elif C1arch is 'saturn':
-        submit_batch = 'qsub batch_torque'
+    if C1arch == 'sunfire.r6':
+        submit_batch = ['sbatch','batch_slurm']
+    elif C1arch == 'saturn':
+        submit_batch = ['qsub','batch_torque']
     else:
         print 'Error: autoC1 does not support M3DC1_ARCH = '+C1arch
         return 
 
-    if task is 'setup':
+    if task == 'setup':
 
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print 'Setting up equilibrium files in efit/'
@@ -84,7 +84,7 @@ def autoC1(task='setup',machine='DIII-D'):
                
             next = raw_input('>>> Would you like to extend profile_ne and profile_te? (Y/N) ')
         
-            if next is 'Y':
+            if next == 'Y':
                 print  "Trying: extend_profile('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95)"
                 loop_extprof('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95)
                 
@@ -114,7 +114,7 @@ def autoC1(task='setup',machine='DIII-D'):
         print
         
     
-    if task is 'efit':
+    if task == 'efit':
     
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print 'Calculating EFIT equilibrium in uni_efit/'
@@ -144,7 +144,7 @@ def autoC1(task='setup',machine='DIII-D'):
         print
         
     
-    if task is 'uni_equil':
+    if task == 'uni_equil':
     
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print 'Calculating equilibrium with M3D-C1 GS solver in uni_equil/'
@@ -160,7 +160,7 @@ def autoC1(task='setup',machine='DIII-D'):
         iter = 1
         next = 'Y'
         
-        while next is not 'N':
+        while next != 'N':
         
             call(submit_batch)
             print
@@ -180,9 +180,9 @@ def autoC1(task='setup',machine='DIII-D'):
                 
                 next = raw_input('>>> Would you like to do another iteration? (Y/N) ')
                 
-                if next is 'Y':
+                if next == 'Y':
                     iter+=1
-                elif next is 'N':
+                elif next == 'N':
                     break
                 else:
                     print '*** Improper response ***'
@@ -197,10 +197,10 @@ def autoC1(task='setup',machine='DIII-D'):
             
             next = raw_input('>>> Would you like to continue onto mesh adaptation? (Y/N) ')
 
-            if next is 'Y':
+            if next == 'Y':
                 mysh.cp('uni_equil/iter_'+str(iter)+'/current.dat','uni_equil/current.dat.good')
                 continue
-            elif next is 'N':
+            elif next == 'N':
                 return
             else:
                 print '*** Improper response ***'
@@ -215,7 +215,7 @@ def autoC1(task='setup',machine='DIII-D'):
         print 'Skipping calculation of equilibrium with M3D-C1 GS solver'
         print
     
-    if task is 'adapt':
+    if task == 'adapt':
         
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print 'Adapting mesh to equilibrium in rw1_adapt/'
@@ -253,7 +253,7 @@ def autoC1(task='setup',machine='DIII-D'):
     
     while True:
         
-        if task is 'calculation':
+        if task == 'calculation':
             
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
@@ -283,10 +283,10 @@ def autoC1(task='setup',machine='DIII-D'):
             task = calcs[option]
 
         
-        if task is 'exit':
+        if task == 'exit':
             print 'Exiting'
             return
-        elif task is 'equilibrium':
+        elif task == 'equilibrium':
             
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print 'Calculate equilibrium with adapted mesh'
@@ -312,7 +312,7 @@ def autoC1(task='setup',machine='DIII-D'):
             print
             print
     
-        elif task is 'stability':
+        elif task == 'stability':
             
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print 'Calculate linear stability'
@@ -327,7 +327,7 @@ def autoC1(task='setup',machine='DIII-D'):
                 
                 next = raw_input('>>> Would you like a different ntor? (Y/N) ')
     
-                if next is 'Y':
+                if next == 'Y':
                     print
                     
                     while True:
@@ -339,7 +339,7 @@ def autoC1(task='setup',machine='DIII-D'):
                         except ValueError:
                             print '*** ntor must be an integer ***'
                 
-                elif next is 'N':
+                elif next == 'N':
                     ntor = '2'
                 else:
                     print '*** Improper response ***'
@@ -373,7 +373,7 @@ def autoC1(task='setup',machine='DIII-D'):
             print
             print
             
-        elif task is 'response':
+        elif task == 'response':
             
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print 'Calculate RMP response'
@@ -387,7 +387,7 @@ def autoC1(task='setup',machine='DIII-D'):
                 
                 next = raw_input('>>> Would you like a different ntor? (Y/N) ')
     
-                if next is 'Y':
+                if next == 'Y':
                     print
                     
                     while True:
@@ -399,7 +399,7 @@ def autoC1(task='setup',machine='DIII-D'):
                         except ValueError:
                             print '*** ntor must be an integer ***'
                 
-                elif next is 'N':
+                elif next == 'N':
                     ntor = '2'
                 else:
                     print '*** Improper response ***'
@@ -443,7 +443,7 @@ def autoC1(task='setup',machine='DIII-D'):
             print
             print
             
-        elif task is 'examine':
+        elif task == 'examine':
             
             print '>>> Here are some good things to check:'
             print '>>> Is the adapted equilbrium a good shape match?'
@@ -457,7 +457,7 @@ def autoC1(task='setup',machine='DIII-D'):
                 
                 next = raw_input('>>> Would you like to check the quality of the equilibrium? (Y/N) ')
                 
-                if next is 'Y':
+                if next == 'Y':
                     print 'Launching IDL for checking quality of the equilibrium'
                     print 'Recommend the following commands, but modify as need be'
                     print 'e.g., rw1_equil/ can be replaced by a completed response or stability run in n=2/'
@@ -473,14 +473,14 @@ def autoC1(task='setup',machine='DIII-D'):
                     while okay not in 'YN':
                         okay = '>>> Is the equilibrium good enough to continue? (Y/N) '
                         
-                        if okay is 'Y':
+                        if okay == 'Y':
                             continue
-                        elif okay is 'N':
+                        elif okay == 'N':
                             return
                         else:
                             print '*** Improper response ***'
                 
-                elif next is 'N':
+                elif next == 'N':
                     print  'Continuing, but equilibrium may have problems'
                 else:
                     print '*** Improper response ***'
