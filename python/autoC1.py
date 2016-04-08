@@ -15,6 +15,7 @@ import fileinput
 from subprocess import call
 from time import sleep
 import re
+from glob import glob
 
 import my_shutil as mysh
 from extend_profile import extend_profile
@@ -49,28 +50,36 @@ def autoC1(task='setup',machine='DIII-D'):
         os.chdir('efit/')
         mysh.cp(r'g*.*','geqdsk')
         
-
-        mysh.cp(r'p*.*','p0.0')
+        if len(glob(r'm3dc1_profiles_*.txt')) != 0:
+            mysh.cp(r'm3dc1_profiles_*.txt','m3dc1_profiles_0.txt')
+            prof = 'm3dc1_profiles_0.txt'
+        elif len(glob(r'p*.*')) != 0:
+            mysh.cp(r'p*.*','p0.0')
+            prof = 'p0.0'
+        else:
+            print 'Error: EFIT profiles file not found'
+            return
         
         # extract profiles using Nate's utility        
-        call(['extract_profiles.sh', 'p0.0'])
+        call(['extract_profiles.sh', prof])
         
-        # extact the Carbon toroidal rotation from the p-file
-        with open('p0.0','r') as fin:
-            iprint = False
-            for line in fin:
-                if not iprint:
-                    if 'psinorm omeg' in line:
-                        iprint = True
-                        fout = open('profile_omega.Ctor','w')
-                else:
-                    if 'psinorm'  not in line:
-                        fout.write(line)
-                    else:
-                        iprint = False
-                        fout.close()
+        if prof == 'p0.0':
+            # extact the Carbon toroidal rotation from the p-file
+            with open('p0.0','r') as fin:
+                iprint = False
+                for line in fin:
+                    if not iprint:
+                        if 'psinorm omeg' in line:
+                            iprint = True
+                            fout = open('profile_omega.Ctor','w')
+                        else:
+                            if 'psinorm'  not in line:
+                                fout.write(line)
+                            else:
+                                iprint = False
+                                fout.close()
 
-        os.remove('p0.0')
+        os.remove(prof)
 
         fc = open('current.dat','w')
         mysh.cp(r'a*.*','a0.0')

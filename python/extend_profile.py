@@ -18,7 +18,8 @@ import numpy as np
 import matplotlib.pyplot as mpl
 from scipy.optimize import curve_fit
 
-def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95):
+def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
+                   width=0.01):
     
     prof = np.loadtxt(filename)
     psi = prof[:,0]
@@ -39,9 +40,18 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95):
     print("Fitting points in range ["+str(psimin)+","+str(psi[-1])+"]")
     print("Fitting to "+str(prof2.size)+" points")
 
-    p0 = [0.98,100.,prof2.max(),0.]
+    p0 = [center,1.0/width,prof2.max(),0.]
     sigma = np.sqrt(prof2)
-    popt, pcov = curve_fit(lintanh,psi2,prof2-minval,p0=p0,sigma=sigma)
+    try:
+        popt, pcov = curve_fit(lintanh,psi2,prof2-minval,p0=p0,sigma=sigma)
+    except RuntimeError:
+        print("Could not fit curve with these parameters")
+        f, ax = mpl.subplots()
+        ax.plot(psi,prof,'r.')
+        ax.set_xlim([psimin,psimax])
+        print 'Close figure to continue'
+        mpl.show()
+        return
     
     print("Fit center:  " + str(popt[0]))
     print("Fit width:   " + str(1./popt[1]))
@@ -58,11 +68,13 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95):
     
     psi4  = np.append(psi,psi3[1:])
     prof4 = np.append(prof,prof3[1:])
+    prof5 = lintanh(psi4,popt[0],popt[1],popt[2],popt[3]) + minval
     
     np.savetxt(filename+'.extpy',np.column_stack((psi4,prof4)),delimiter="\t",fmt='%1.6f')
     
     f, ax = mpl.subplots()
     ax.plot(psi4,prof4)
+    ax.plot(psi4,prof5,'g--')
     ax.plot(psi,prof,'r.')
     ax.set_xlim([psimin,psimax])
     ax.set_ylim([min(prof4.min(),0.),prof2.max()])
@@ -70,11 +82,6 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95):
     print 'Close figure to continue'
     mpl.show()
     
-#    prof5 = np.loadtxt(filename+'.extended')
-#    psi5 = prof5[:,0]
-#    prof5 = prof5[:,1]
-#    ax.plot(psi5,prof5,'g')   
-#    ax.set_yscale('log')
     
     return
     
