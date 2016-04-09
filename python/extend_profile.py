@@ -85,6 +85,34 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
     
     return
     
+def plot_profile(filename,psimin=0.95,ylog=False):
+    
+    prof = np.loadtxt(filename)
+    psi = prof[:,0]
+    prof = prof[:,1]
+    
+    if psimin > psi[-1] :
+        print("Error: psimin greater than last psi value defined")
+        return
+    
+    i = np.where(psi>psimin)
+    psi2  = psi[i]
+    prof2 = prof[i]
+
+    f, ax = mpl.subplots()
+    ax.plot(psi2,prof2,'r-',linewidth=3)
+    minval = prof2.min()
+    maxval = prof2.max()
+    if ylog:
+        ax.set_yscale('log')
+        ax.set_ylim([1e-1*minval,maxval])
+    else:
+        ax.set_ylim([min(minval,0.),maxval])
+
+    mpl.show()
+    
+    return
+    
     
 def lintanh(x,a,b,c,d):  
     
