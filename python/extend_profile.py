@@ -70,7 +70,7 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
     prof4 = np.append(prof,prof3[1:])
     prof5 = lintanh(psi4,popt[0],popt[1],popt[2],popt[3]) + minval
     
-    np.savetxt(filename+'.extpy',np.column_stack((psi4,prof4)),delimiter="\t",fmt='%1.6f')
+    np.savetxt(filename+'.extpy',np.column_stack((psi4,prof4)),delimiter="    ",fmt='%1.6f')
     
     f, ax = mpl.subplots()
     ax.plot(psi4,prof4)
