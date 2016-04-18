@@ -21,8 +21,9 @@ import my_shutil as mysh
 from extend_profile import extend_profile
 from load_equil import load_equil
 from move_iter import move_iter
+from mod_C1input import mod_C1input
 
-def autoC1(task='setup',machine='DIII-D'):
+def autoC1(task='setup',machine='DIII-D',C1inputs=None):
     
     if task == 'all':
         task = 'setup'
@@ -72,12 +73,12 @@ def autoC1(task='setup',machine='DIII-D'):
                         if 'psinorm omeg' in line:
                             iprint = True
                             fout = open('profile_omega.Ctor','w')
+                    else:
+                        if 'psinorm'  not in line:
+                            fout.write(line)
                         else:
-                            if 'psinorm'  not in line:
-                                fout.write(line)
-                            else:
-                                iprint = False
-                                fout.close()
+                            iprint = False
+                            fout.close()
 
         os.remove(prof)
 
@@ -94,13 +95,14 @@ def autoC1(task='setup',machine='DIII-D'):
             next = raw_input('>>> Would you like to extend profile_ne and profile_te? (Y/N) ')
         
             if next == 'Y':
-                print  "Trying: extend_profile('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95)"
-                loop_extprof('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95)
+                print  "Trying: extend_profile('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,center=0.98,width=0.01)"
+                loop_extprof('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,
+                             center=0.98,width=0.01)
+                os.rename('profile_ne.extpy','profile_ne')                
                 
-                print  "Trying: extend_profile('profile_ne',minval=1e-4,psimax=1.1,psimin=0.95)"
-                loop_extprof('profile_te',minval=1e-4,psimax=1.1,psimin=0.95)
-                
-                os.rename('profile_ne.extpy','profile_ne')
+                print  "Trying: extend_profile('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,center=0.98,width=0.01)"
+                loop_extprof('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,
+                             center=0.98,width=0.01)                
                 os.rename('profile_te.extpy','profile_te')
                 
                 print
@@ -135,6 +137,7 @@ def autoC1(task='setup',machine='DIII-D'):
         
         load_equil('efit/','uni_efit/')
         os.chdir('uni_efit/')
+        mod_C1input(C1inputs)
         call(submit_batch)
         print
         
@@ -165,6 +168,7 @@ def autoC1(task='setup',machine='DIII-D'):
         
         load_equil('efit/','uni_equil/')
         os.chdir('uni_equil/')
+        mod_C1input(C1inputs)
         
         iter = 1
         next = 'Y'
@@ -237,7 +241,7 @@ def autoC1(task='setup',machine='DIII-D'):
         load_equil('efit/','rw1_adapt/')
         mysh.cp('uni_equil/current.dat.good', 'rw1_adapt/current.dat')
         os.chdir('rw1_adapt/')
-        
+        mod_C1input(C1inputs)
         
         call(submit_batch)
         print
@@ -308,6 +312,7 @@ def autoC1(task='setup',machine='DIII-D'):
             load_equil('rw1_adapt/','rw1_equil/')
             mysh.cp('rw1_adapt/adapted0.smb', 'rw1_equil/adapted0.smb')
             os.chdir('rw1_equil/')
+            mod_C1input(C1inputs)
         
             call(submit_batch)
             print
@@ -368,6 +373,7 @@ def autoC1(task='setup',machine='DIII-D'):
             load_equil('../rw1_adapt/','eb1_1f_stab/')
             mysh.cp('../rw1_adapt/adapted0.smb', 'eb1_1f_stab/adapted0.smb')
             os.chdir('eb1_1f_stab/')
+            mod_C1input(C1inputs)
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
         
@@ -427,6 +433,7 @@ def autoC1(task='setup',machine='DIII-D'):
             load_equil('../rw1_adapt/','eb1_1f_iu/')
             mysh.cp('../rw1_adapt/adapted0.smb', 'eb1_1f_iu/adapted0.smb')
             os.chdir('eb1_1f_iu/')
+            mod_C1input(C1inputs)
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
             call(submit_batch)
@@ -438,6 +445,7 @@ def autoC1(task='setup',machine='DIII-D'):
             load_equil('../rw1_adapt/','eb1_1f_il/')
             mysh.cp('../rw1_adapt/adapted0.smb', 'eb1_1f_il/adapted0.smb')
             os.chdir('eb1_1f_il/')
+            mod_C1input(C1inputs)
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
             call(submit_batch)
@@ -499,13 +507,15 @@ def autoC1(task='setup',machine='DIII-D'):
     return    
 
 # Loop over extend_profile until it is acceptable to the user
-def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95):
+def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
+                 width=0.01):
 
     good = 'N'
 
     while good is not 'Y': 
                
-        extend_profile(filename,minval=minval,psimax=psimax,psimin=psimin)
+        extend_profile(filename,minval=minval,psimax=psimax,psimin=psimin,
+                       center=center,width=width)
         
         good = raw_input('>>> Is this profile extension good enough? (Y/N) ')
         if good is not 'Y':
@@ -521,6 +531,14 @@ def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95):
                 psimin = float(raw_input('>>> New psimin: (<Enter> for same value '+str(psimin)+') '))
             except ValueError:
                 print 'psimin = '+str(psimin)+' unchanged'
+            try:
+                center = float(raw_input('>>> New center: (<Enter> for same value '+str(center)+') '))
+            except ValueError:
+                print 'center = '+str(center)+' unchanged'
+            try:
+                width = float(raw_input('>>> New width: (<Enter> for same value '+str(width)+') '))
+            except ValueError:
+                print 'width = '+str(width)+' unchanged'
     
     return
         
