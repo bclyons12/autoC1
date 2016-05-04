@@ -16,6 +16,7 @@ from subprocess import call
 from time import sleep
 import re
 from glob import glob
+import matplotlib.pyplot as plt
 
 import my_shutil as mysh
 from extend_profile import extend_profile
@@ -512,8 +513,9 @@ def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
 
     good = 'N'
 
+    plt.ion()
     while good is not 'Y': 
-               
+
         extend_profile(filename,minval=minval,psimax=psimax,psimin=psimin,
                        center=center,width=width)
         
@@ -539,6 +541,8 @@ def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
                 width = float(raw_input('>>> New width: (<Enter> for same value '+str(width)+') '))
             except ValueError:
                 print 'width = '+str(width)+' unchanged'
+    
+    plt.ioff()
     
     return
         

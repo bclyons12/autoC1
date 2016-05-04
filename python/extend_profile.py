@@ -15,7 +15,7 @@ Date edited:  1/5/16
 """
 import math
 import numpy as np
-import matplotlib.pyplot as mpl
+import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
@@ -46,11 +46,10 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
         popt, pcov = curve_fit(lintanh,psi2,prof2-minval,p0=p0,sigma=sigma)
     except RuntimeError:
         print("Could not fit curve with these parameters")
-        f, ax = mpl.subplots()
+        f, ax = plt.subplots()
         ax.plot(psi,prof,'r.')
         ax.set_xlim([psimin,psimax])
-        print 'Close figure to continue'
-        mpl.show()
+        plt.waitforbuttonpress(1)
         return
     
     print("Fit center:  " + str(popt[0]))
@@ -72,16 +71,14 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
     
     np.savetxt(filename+'.extpy',np.column_stack((psi4,prof4)),delimiter="    ",fmt='%1.6f')
     
-    f, ax = mpl.subplots()
+    f, ax = plt.subplots()
     ax.plot(psi4,prof4)
     ax.plot(psi4,prof5,'g--')
     ax.plot(psi,prof,'r.')
     ax.set_xlim([psimin,psimax])
     ax.set_ylim([min(prof4.min(),0.),prof2.max()])
 
-    print 'Close figure to continue'
-    mpl.show()
-    
+    plt.waitforbuttonpress(1)
     
     return
     
@@ -99,7 +96,7 @@ def plot_profile(filename,psimin=0.95,ylog=False):
     psi2  = psi[i]
     prof2 = prof[i]
 
-    f, ax = mpl.subplots()
+    f, ax = plt.subplots()
     ax.plot(psi2,prof2,'r-',linewidth=3)
     minval = prof2.min()
     maxval = prof2.max()
@@ -109,7 +106,7 @@ def plot_profile(filename,psimin=0.95,ylog=False):
     else:
         ax.set_ylim([min(minval,0.),maxval])
 
-    mpl.show()
+    plt.show()
     
     return
     
