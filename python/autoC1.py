@@ -543,6 +543,7 @@ def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
                 print 'width = '+str(width)+' unchanged'
     
     plt.ioff()
+    plt.close('all')
     
     return
         
