@@ -117,3 +117,18 @@ def lintanh(x,a,b,c,d):
     s =  0.5*c*(1.0+d*(1.0-x))
     
     return np.multiply(s,t)
+    
+def lintanh2(x,y0,yinf,z,c,w):
+    
+    A = 1.0 - np.tanh((z-c)/w)
+    h = (y0 - yinf + 2.*yinf/A)/z
+    
+    t = 0.5*(1.0 - np.tanh((x-c)/w))
+    s = y0 - yinf - h*x
+    
+    y = np.multiply(s,t) + yinf
+
+#    y = y - 0.5*(y0 - yinf - 2.0*(y0-ymid)*c)    
+    
+    return y
+    
