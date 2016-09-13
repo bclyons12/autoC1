@@ -104,7 +104,8 @@
 
 	gam = 1.66666666666667	! adiabatic constant
 
-!	db = 0.0322	! ion skin depth
+	! ion skin depth
+	db_fac = 0.0
 
 
 ! Boundary Conditions

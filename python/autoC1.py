@@ -31,6 +31,15 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
 
 
     template = os.environ.get('AUTOC1_HOME')+'/templates/'+ machine + '/'
+    
+    if machine is 'DIII-D':
+        rot = 'eb1'
+    elif machine is 'NSTX-U':
+        rot = 'eb1'
+    elif machine is 'AUG':
+        rot = 'eb1'
+    else:
+        rot = 'eb1'
 
     C1arch = os.environ.get('M3DC1_ARCH')
 
@@ -51,47 +60,49 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         
         os.chdir('efit/')
         mysh.cp(r'g*.*','geqdsk')
+
+        if machine in ['DIII-D','NSTX-U']:
         
-        if len(glob(r'm3dc1_profiles_*.txt')) != 0:
-            mysh.cp(r'm3dc1_profiles_*.txt','m3dc1_profiles_0.txt')
-            prof = 'm3dc1_profiles_0.txt'
-        elif len(glob(r'p*.*')) != 0:
-            mysh.cp(r'p*.*','p0.0')
-            prof = 'p0.0'
-        else:
-            print 'Error: EFIT profiles file not found'
-            return
-        
-        # extract profiles using Nate's utility        
-        call(['extract_profiles.sh', prof])
-        
-        if prof == 'p0.0':
-            # extact the Carbon toroidal rotation from the p-file
-            with open('p0.0','r') as fin:
-                iprint = False
-                for line in fin:
-                    if not iprint:
-                        if 'psinorm omeg' in line:
-                            iprint = True
-                            fout = open('profile_omega.Ctor','w')
-                    else:
-                        if 'psinorm'  not in line:
-                            fout.write(line)
+            if len(glob(r'm3dc1_profiles_*.txt')) != 0:
+                mysh.cp(r'm3dc1_profiles_*.txt','m3dc1_profiles_0.txt')
+                prof = 'm3dc1_profiles_0.txt'
+            elif len(glob(r'p*.*')) != 0:
+                mysh.cp(r'p*.*','p0.0')
+                prof = 'p0.0'
+            else:
+                print 'Error: EFIT profiles file not found'
+                return
+            
+            # extract profiles using Nate's utility        
+            call(['extract_profiles.sh', prof])
+            
+            if prof == 'p0.0':
+                # extact the Carbon toroidal rotation from the p-file
+                with open('p0.0','r') as fin:
+                    iprint = False
+                    for line in fin:
+                        if not iprint:
+                            if 'psinorm omeg' in line:
+                                iprint = True
+                                fout = open('profile_omega.Ctor','w')
                         else:
-                            iprint = False
-                            fout.close()
-
-        os.remove(prof)
-
-        fc = open('current.dat','w')
-        mysh.cp(r'a*.*','a0.0')
-        call(['a2cc', 'a0.0'], stdout=fc)
-        fc.close()
-        os.remove('a0.0')
-
+                            if 'psinorm'  not in line:
+                                fout.write(line)
+                            else:
+                                iprint = False
+                                fout.close()
+    
+            os.remove(prof)
+    
+            fc = open('current.dat','w')
+            mysh.cp(r'a*.*','a0.0')
+            call(['a2cc', 'a0.0'], stdout=fc)
+            fc.close()
+            os.remove('a0.0')
+            
         next = '-'
             
-        while next not in 'YN':
+        while next not in ['Y','N']:
                
             next = raw_input('>>> Would you like to extend profile_ne and profile_te? (Y/N) ')
         
@@ -190,7 +201,7 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         
             next = '-'
             
-            while next not in 'YN':
+            while next not in ['Y','N']:
                 
                 next = raw_input('>>> Would you like to do another iteration? (Y/N) ')
                 
@@ -207,7 +218,7 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         next = '-'
         os.chdir('..')
             
-        while next not in 'YN':
+        while next not in ['Y','N']:
             
             next = raw_input('>>> Would you like to continue onto mesh adaptation? (Y/N) ')
 
@@ -334,46 +345,40 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print
         
-            print '>>> Default ntor = 2'
-            
-            next = '-'
-        
-            while next not in 'YN':
-                
-                next = raw_input('>>> Would you like a different ntor? (Y/N) ')
-    
-                if next == 'Y':
-                    print
-                    
-                    while True:
-                        ntor = raw_input('>>> Please enter the desired ntor: ')
+            while True:
+                ntor = raw_input('>>> Please enter the desired ntor: ')
 
-                        try:
-                            int(ntor)
-                            break
-                        except ValueError:
-                            print '*** ntor must be an integer ***'
+                try:
+                    int(ntor)
+                    break
+                except ValueError:
+                    print '*** ntor must be an integer ***'
+
+
+            nflu = ''
+            while nflu not in ['1','2']:
                 
-                elif next == 'N':
-                    ntor = '2'
-                else:
-                    print '*** Improper response ***'
+                nflu = raw_input('>>> How many fluids? (1 or 2) ')
                     
+                if nflu not in ['1','2']:
+                    print '*** Improper response ***'                
+            
             print
-            print 'Calculating stability for ntor = ' + ntor
+            print 'Calculating stability for '+nflu+'F and ntor = ' + ntor
     
             ndir = 'n='+ntor+'/'
             
             if not os.path.isdir(ndir):
                 os.mkdir(ndir)
             os.chdir(ndir)
+            
+            stab = rot+'_'+nflu+'f_stab/'
+            if not os.path.isdir(stab):
+                sh.copytree(template+'n=/'+stab,stab)
         
-            if not os.path.isdir('eb1_1f_stab/'):
-                sh.copytree(template+'n=/eb1_1f_stab/','eb1_1f_stab')
-        
-            load_equil('../rw1_adapt/','eb1_1f_stab/')
-            mysh.cp('../rw1_adapt/adapted0.smb', 'eb1_1f_stab/adapted0.smb')
-            os.chdir('eb1_1f_stab/')
+            load_equil('../rw1_adapt/',stab)
+            mysh.cp('../rw1_adapt/adapted0.smb', stab+'adapted0.smb')
+            os.chdir(stab)
             mod_C1input(C1inputs)
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
@@ -392,48 +397,46 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         elif task == 'response':
             
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-            print 'Calculate RMP response'
+            print 'Calculate 3D plasma response'
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print
                 
-            print '>>> Default ntor = 2'
-            next = '-'
-        
-            while next not in 'YN':
-                
-                next = raw_input('>>> Would you like a different ntor? (Y/N) ')
-    
-                if next == 'Y':
-                    print
-                    
-                    while True:
-                        ntor = raw_input('>>> Please enter the desired ntor: ')
+               
+            while True:
+                ntor = raw_input('>>> Please enter the desired ntor: ')
 
-                        try:
-                            int(ntor)
-                            break
-                        except ValueError:
-                            print '*** ntor must be an integer ***'
+                try:
+                    int(ntor)
+                    break
+                except ValueError:
+                    print '*** ntor must be an integer ***'
                 
-                elif next == 'N':
-                    ntor = '2'
-                else:
-                    print '*** Improper response ***'
+            nflu = ''
+            while nflu not in ['1','2']:
+                
+                nflu = raw_input('>>> How many fluids? (1 or 2) ')
                     
+                if nflu not in ['1','2']:
+                    print '*** Improper response ***'
+                         
+            
             print
-            print 'Calculating response for ntor = ' + ntor
+            print 'Calculating '+nflu+'F response for ntor = ' + ntor
     
             ndir = 'n='+ntor+'/'
             
             if not os.path.isdir(ndir):
                 os.mkdir(ndir)
             os.chdir(ndir)
-             
-            if not os.path.isdir('eb1_1f_iu/'):
-                sh.copytree(template+'n=/eb1_1f_iu/','eb1_1f_iu')
-            load_equil('../rw1_adapt/','eb1_1f_iu/')
-            mysh.cp('../rw1_adapt/adapted0.smb', 'eb1_1f_iu/adapted0.smb')
-            os.chdir('eb1_1f_iu/')
+            
+            up = rot+'_'+nflu+'f_iu/'
+            low = rot+'_'+nflu+'f_il/'
+            
+            if not os.path.isdir(up):
+                sh.copytree(template+'n=/'+up,up)
+            load_equil('../rw1_adapt/',up)
+            mysh.cp('../rw1_adapt/adapted0.smb', up+'adapted0.smb')
+            os.chdir(up)
             mod_C1input(C1inputs)
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
@@ -441,11 +444,11 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             
             os.chdir('..')
             
-            if not os.path.isdir('eb1_1f_il/'):
-                sh.copytree(template+'n=/eb1_1f_il/','eb1_1f_il')
-            load_equil('../rw1_adapt/','eb1_1f_il/')
-            mysh.cp('../rw1_adapt/adapted0.smb', 'eb1_1f_il/adapted0.smb')
-            os.chdir('eb1_1f_il/')
+            if not os.path.isdir(low):
+                sh.copytree(template+'n=/'+low,low)
+            load_equil('../rw1_adapt/',low)
+            mysh.cp('../rw1_adapt/adapted0.smb', low+'adapted0.smb')
+            os.chdir(low)
             mod_C1input(C1inputs)
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
@@ -471,7 +474,7 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             
             next = '-'
             
-            while next not in 'YN':
+            while next not in ['Y','N']:
                 
                 next = raw_input('>>> Would you like to check the quality of the equilibrium? (Y/N) ')
                 
@@ -488,7 +491,7 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
                     
                     okay = '-'
                     
-                    while okay not in 'YN':
+                    while okay not in ['Y','N']:
                         okay = '>>> Is the equilibrium good enough to continue? (Y/N) '
                         
                         if okay == 'Y':
