@@ -107,14 +107,14 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             next = raw_input('>>> Would you like to extend profile_ne and profile_te? (Y/N) ')
         
             if next == 'Y':
-                print  "Trying: extend_profile('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,center=0.98,width=0.01)"
+                print  "Trying: extend_profile('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)"
                 loop_extprof('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,
-                             center=0.98,width=0.01)
+                             center=0.98,width=0.01,smooth=None)
                 os.rename('profile_ne.extpy','profile_ne')                
                 
-                print  "Trying: extend_profile('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,center=0.98,width=0.01)"
+                print  "Trying: extend_profile('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)"
                 loop_extprof('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,
-                             center=0.98,width=0.01)                
+                             center=0.98,width=0.01,smooth=None)                
                 os.rename('profile_te.extpy','profile_te')
                 
                 print
@@ -512,7 +512,7 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
 
 # Loop over extend_profile until it is acceptable to the user
 def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
-                 width=0.01):
+                 width=0.01,smooth=None):
 
     good = 'N'
 
@@ -520,7 +520,7 @@ def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
     while good is not 'Y': 
 
         extend_profile(filename,minval=minval,psimax=psimax,psimin=psimin,
-                       center=center,width=width)
+                       center=center,width=width,smooth=smooth)
         
         good = raw_input('>>> Is this profile extension good enough? (Y/N) ')
         if good is not 'Y':
@@ -528,22 +528,36 @@ def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
                 minval = float(raw_input('>>> New minval: (<Enter> for same value '+str(minval)+') '))
             except ValueError:
                 print 'minval = '+str(minval)+' unchanged'
+            
             try:
                 psimax = float(raw_input('>>> New psimax: (<Enter> for same value '+str(psimax)+') '))
             except ValueError:
                 print 'psimax = '+str(psimax)+' unchanged'
+            
             try:
                 psimin = float(raw_input('>>> New psimin: (<Enter> for same value '+str(psimin)+') '))
             except ValueError:
                 print 'psimin = '+str(psimin)+' unchanged'
+            
             try:
                 center = float(raw_input('>>> New center: (<Enter> for same value '+str(center)+') '))
             except ValueError:
                 print 'center = '+str(center)+' unchanged'
+            
             try:
                 width = float(raw_input('>>> New width: (<Enter> for same value '+str(width)+') '))
             except ValueError:
                 print 'width = '+str(width)+' unchanged'
+            
+            try:
+                sm_str = raw_input('>>> New smooth: (<Enter> for same value '+str(smooth)+') ')
+                if sm_str is 'None':
+                    smooth = None
+                else:
+                    smooth = float(sm_str)
+            except ValueError:
+                print 'smooth = '+str(smooth)+' unchanged'
+            
     
     plt.ioff()
     plt.close('all')

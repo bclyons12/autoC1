@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
-                   width=0.01):
+                   width=0.01,smooth=None):
     
     prof = np.loadtxt(filename)
     psi = prof[:,0]
@@ -69,15 +69,29 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
     prof4 = np.append(prof,prof3[1:])
     prof5 = lintanh(psi4,popt[0],popt[1],popt[2],popt[3]) + minval
     
+    if smooth is not None:
+        # make profile linear between psi=smooth and psi=psi[-1]
+        imin, pmin = next((i,p) for i,p in enumerate(psi4) if p>smooth)
+        imax, pmax = next((i,p) for i,p in enumerate(psi4) if p>psi[-1])
+        
+        prmin = prof4[imin]
+        prmax = prof4[imax]
+        
+        for i in range(imin,imax):
+            
+            prof4[i] = prmin + (psi4[i]-pmin)*(prmax-prmin)/(pmax-pmin)
+    
     np.savetxt(filename+'.extpy',np.column_stack((psi4,prof4)),delimiter="    ",fmt='%1.6f')
     
     f, ax = plt.subplots()
-    ax.plot(psi4,prof4)
-    ax.plot(psi4,prof5,'g--')
-    ax.plot(psi,prof,'r.')
+    ax.plot(psi4,prof5,'g--',linewidth=2)
+    ax.plot(psi,prof,'r.',markersize=12)
+    ax.plot(psi4,prof4,'b',linewidth=3)
     ax.set_xlim([psimin,psimax])
     ax.set_ylim([min(prof4.min(),0.),prof2.max()])
-
+    if prof4.min()<0.:
+        print("Warning: minimum value is negative")
+    
     plt.waitforbuttonpress(1)
     
     return
