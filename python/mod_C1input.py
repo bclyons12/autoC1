@@ -21,6 +21,13 @@ def mod_C1input(C1inputs=None,folder='.',append=True):
     old = folder + '/C1input.old'
     mv(new,old)
     
+    if 'feedback' in C1copy:
+        fb_fac = float(C1copy['feedback'])
+        C1copy['feedback'] = None
+        print "\tMultiplying feedback values by " + str(fb_fac)
+    else:
+        fb_fac = None
+
     with open(old,'r') as fin:
         with open(new,'w') as fout:
         
@@ -37,7 +44,12 @@ def mod_C1input(C1inputs=None,folder='.',append=True):
                             #spl[1] = val.rjust(len(spl[1])-1)
                             spl[1] = "  " + val
                             line = spl[0] + "=" + spl[1] + "\n"
-                
+                    
+                    if (fb_fac is not None) and ('feedback' in spl[0]):
+                        val = fb_fac*float(spl[1].strip())
+                        spl[1] = "  " + str(val)
+                        line = spl[0] + "=" + spl[1] + "\n"
+                        
                 if line.strip() != '/':
                     fout.write(line)
           

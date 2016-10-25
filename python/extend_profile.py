@@ -70,16 +70,21 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
     prof5 = lintanh(psi4,popt[0],popt[1],popt[2],popt[3]) + minval
     
     if smooth is not None:
-        # make profile linear between psi=smooth and psi=psi[-1]
+        # smooth profile between smooth and psi[-1]
         imin, pmin = next((i,p) for i,p in enumerate(psi4) if p>smooth)
         imax, pmax = next((i,p) for i,p in enumerate(psi4) if p>psi[-1])
         
-        prmin = prof4[imin]
-        prmax = prof4[imax]
+#        prmin = prof4[imin]
+#        prmax = prof4[imax]
         
         for i in range(imin,imax):
             
-            prof4[i] = prmin + (psi4[i]-pmin)*(prmax-prmin)/(pmax-pmin)
+            # linear smooth
+            #prof4[i] = prmin + (psi4[i]-pmin)*(prmax-prmin)/(pmax-pmin)
+    
+            # average smooth
+            prof4[i] = (psi4[i]-pmin)*prof5[i] +  (pmax-psi4[i])*prof4[i]
+            prof4[i] = prof4[i]/(pmax-pmin)
     
     np.savetxt(filename+'.extpy',np.column_stack((psi4,prof4)),delimiter="    ",fmt='%1.6f')
     

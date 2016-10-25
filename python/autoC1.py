@@ -12,7 +12,7 @@ Date edited:
 import os
 import shutil as sh
 import fileinput
-from subprocess import call
+from subprocess import call, check_output
 from time import sleep
 import re
 from glob import glob
@@ -153,9 +153,9 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         call(submit_batch)
         print
         
-        print  '>>> Please wait for job m3dc1_efit to finish'
-        raw_input('>>> Press <ENTER> twice when finished')
-        raw_input('>>> Press <ENTER> again to proceed')
+#        print  '>>> Please wait for job m3dc1_efit to finish'
+#        raw_input('>>> Press <ENTER> twice when finished')
+#        raw_input('>>> Press <ENTER> again to proceed')
         
         os.chdir('..')
     
@@ -182,18 +182,43 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         os.chdir('uni_equil/')
         mod_C1input(C1inputs)
         
-        iter = 1
+        while True:
+            min_iter = raw_input('>>> Please enter minimum iteration number: ')
+
+            try:
+                min_iter = int(min_iter)
+                if min_iter < 1:
+                    print '*** min_iter must be greater than or equal to 1 ***'                    
+                else:
+                    break
+            except ValueError:
+                print '*** min_iter must be an integer ***'
+        
+        iter = 0
+        for iter in range(1,min_iter):
+            
+            call(submit_batch)
+            print
+            while not os.path.exists('time_000.h5'):
+                sleep(10)
+            print  '>>> iter '+str(iter)+' time_000.h5 created'
+            print check_output('grep "Final error in GS solution" C1stdout',shell=True)
+            
+            os.mkdir('iter_'+str(iter))
+            move_iter('iter_'+str(iter)+'/')
+            
         next = 'Y'
+        iter += 1
         
         while next != 'N':
         
             call(submit_batch)
             print
-            print  '>>> Please wait for job m3dc1_eq'+str(iter)+' to finish'
-            raw_input('>>> Press <ENTER> twice when finished')
-            raw_input('>>> Press <ENTER> again to proceed')
+            while not os.path.exists('time_000.h5'):
+                sleep(10)
             print
-        
+            print  '>>> iter '+str(iter)+' time_000.h5 created'
+            print check_output('grep "Final error in GS solution" C1stdout',shell=True)
             os.mkdir('iter_'+str(iter))
             move_iter('iter_'+str(iter)+'/')
         
@@ -206,7 +231,7 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
                 next = raw_input('>>> Would you like to do another iteration? (Y/N) ')
                 
                 if next == 'Y':
-                    iter+=1
+                    iter += 1
                 elif next == 'N':
                     break
                 else:
