@@ -149,6 +149,8 @@
 
  	gs_vertical_feedback(1)  =  500.
  	gs_vertical_feedback(2)  = -500.
+ 	gs_vertical_feedback_i(1)  =  250.
+ 	gs_vertical_feedback_i(2)  = -250.
 
 	ntor = 2
 

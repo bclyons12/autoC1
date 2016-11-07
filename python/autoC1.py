@@ -23,6 +23,7 @@ from extend_profile import extend_profile
 from load_equil import load_equil
 from move_iter import move_iter
 from mod_C1input import mod_C1input
+from extract_profiles import extract_profiles
 
 def autoC1(task='setup',machine='DIII-D',C1inputs=None):
     
@@ -61,39 +62,10 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         os.chdir('efit/')
         mysh.cp(r'g*.*','geqdsk')
 
+        extract_profiles(machine=machine)
+
         if machine in ['DIII-D','NSTX-U']:
-        
-            if len(glob(r'm3dc1_profiles_*.txt')) != 0:
-                mysh.cp(r'm3dc1_profiles_*.txt','m3dc1_profiles_0.txt')
-                prof = 'm3dc1_profiles_0.txt'
-            elif len(glob(r'p*.*')) != 0:
-                mysh.cp(r'p*.*','p0.0')
-                prof = 'p0.0'
-            else:
-                print 'Error: EFIT profiles file not found'
-                return
-            
-            # extract profiles using Nate's utility        
-            call(['extract_profiles.sh', prof])
-            
-            if prof == 'p0.0':
-                # extact the Carbon toroidal rotation from the p-file
-                with open('p0.0','r') as fin:
-                    iprint = False
-                    for line in fin:
-                        if not iprint:
-                            if 'psinorm omeg' in line:
-                                iprint = True
-                                fout = open('profile_omega.Ctor','w')
-                        else:
-                            if 'psinorm'  not in line:
-                                fout.write(line)
-                            else:
-                                iprint = False
-                                fout.close()
-    
-            os.remove(prof)
-    
+
             fc = open('current.dat','w')
             mysh.cp(r'a*.*','a0.0')
             call(['a2cc', 'a0.0'], stdout=fc)
@@ -153,9 +125,12 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         call(submit_batch)
         print
         
-#        print  '>>> Please wait for job m3dc1_efit to finish'
-#        raw_input('>>> Press <ENTER> twice when finished')
-#        raw_input('>>> Press <ENTER> again to proceed')
+        if machine in ['AUG']:
+            print  '>>> Please wait for job m3dc1_efit to finish'
+            print  '>>> Then use IDL to make current.dat from find_aug_currents.pro'
+            print  '>>> Put this current.dat into efit/ folder'
+            raw_input('>>> Press <ENTER> twice when finished')
+            raw_input('>>> Press <ENTER> again to proceed')
         
         os.chdir('..')
     
