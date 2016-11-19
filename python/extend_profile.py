@@ -69,6 +69,8 @@ def extend_profile(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
     prof4 = np.append(prof,prof3[1:])
     prof5 = lintanh(psi4,popt[0],popt[1],popt[2],popt[3]) + minval
     
+    print("Minimum value:  " + str(prof4.min()))
+    
     if smooth is not None:
         # smooth profile between smooth and psi[-1]
         imin, pmin = next((i,p) for i,p in enumerate(psi4) if p>smooth)

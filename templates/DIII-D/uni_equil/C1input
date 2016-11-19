@@ -1,3 +1,4 @@
+
 &inputnl
 
 ! I/O Options
@@ -164,7 +165,7 @@
 	q0 = 0.9	! saftey factor near the magnetic axis
 	p1 = 0
 	p2 = 0
-	pedge = 2e-4
+	tiedge = 5e-4
 	expn = 0.
 	divertors = 0
 	xnull = 1.27282

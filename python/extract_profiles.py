@@ -13,6 +13,7 @@ from subprocess import call
 from glob import glob
 import my_shutil as mysh
 import numpy as np
+from scipy.interpolate import interp1d
 
 def extract_profiles(machine='DIII-D',profile='all'):
     
@@ -63,7 +64,8 @@ def extract_profiles(machine='DIII-D',profile='all'):
                 ne = np.loadtxt('neprof_0.asc')
                 ne[:,0] = ne[:,0]**2
                 ne[:,1] = ne[:,1]*1e-20
-                np.savetxt('profile_ne',ne[ne[:,0]<=1.0],fmt='%.6e',delimiter='   ')
+                ne = ne[ne[:,0]<=1.0]
+                np.savetxt('profile_ne',ne,fmt='%.6e',delimiter='   ')
                 os.remove(prof)
         
         if profile in ['all','te','Te']:
@@ -73,7 +75,8 @@ def extract_profiles(machine='DIII-D',profile='all'):
                 Te = np.loadtxt('Teprof_0.asc')
                 Te[:,0] = Te[:,0]**2
                 Te[:,1] = Te[:,1]*1e-3
-                np.savetxt('profile_te',Te[Te[:,0]<=1.0],fmt='%.6e',delimiter='   ')
+                Te = Te[Te[:,0]<=1.0]
+                np.savetxt('profile_te',Te,fmt='%.6e',delimiter='   ')
                 os.remove(prof)
             
         if profile in ['all','vt','vtor']:
@@ -83,7 +86,8 @@ def extract_profiles(machine='DIII-D',profile='all'):
                 vt = np.loadtxt('vtprof_0.asc')
                 vt[:,0] = vt[:,0]**2
                 vt[:,1] = vt[:,1]*1e-3
-                np.savetxt('profile_omega.Btor',vt[vt[:,0]<=1.0],fmt='%.6e',delimiter='   ')
+                vt = vt[vt[:,0]<=1.0]
+                np.savetxt('profile_omega.Btor',vt,fmt='%.6e',delimiter='   ')
                 os.remove(prof)
                 mysh.cp(r'profile_omega.Btor','profile_omega')
         
@@ -94,10 +98,19 @@ def extract_profiles(machine='DIII-D',profile='all'):
                 omgeb = np.loadtxt('omgeb_0.asc')
                 omgeb[:,0] = omgeb[:,0]**2
                 omgeb[:,1] = omgeb[:,1]*1e-3
-                np.savetxt('profile_omega.ExB',omgeb[omgeb[:,0]<=1.0],fmt='%.6e',delimiter='   ')
+                omgeb = omgeb[omgeb[:,0]<=1.0]
+                
+                # interpolate profile omega onto Te grid
+                if len(glob(r'profile_te')) != 0:
+                    Te = np.loadtxt('profile_te')
+                    Pte = Te[:,0]
+                    O = interp1d(omgeb[:,0],omgeb[:,1],fill_value='extrapolate')
+                    om2 = O(Pte)
+                    omgeb = np.transpose(np.array([Pte,om2]))
+                
+                np.savetxt('profile_omega.ExB',omgeb,fmt='%.6e',delimiter='   ')
                 os.remove(prof)
                 mysh.cp(r'profile_omega.ExB','profile_omega')
-        
     return
         
         

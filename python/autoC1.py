@@ -25,7 +25,8 @@ from move_iter import move_iter
 from mod_C1input import mod_C1input
 from extract_profiles import extract_profiles
 
-def autoC1(task='setup',machine='DIII-D',C1inputs=None):
+def autoC1(task='setup',machine='DIII-D',C1inputs=None,
+           interactive=True):
     
     if task == 'all':
         task = 'setup'
@@ -72,30 +73,31 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             fc.close()
             os.remove('a0.0')
             
-        next = '-'
+        if interactive:
+            next = '-'
+                
+            while next not in ['Y','N']:
+                   
+                next = raw_input('>>> Would you like to extend profile_ne and profile_te? (Y/N) ')
             
-        while next not in ['Y','N']:
-               
-            next = raw_input('>>> Would you like to extend profile_ne and profile_te? (Y/N) ')
-        
-            if next == 'Y':
-                print  "Trying: extend_profile('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)"
-                loop_extprof('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,
-                             center=0.98,width=0.01,smooth=None)
-                os.rename('profile_ne.extpy','profile_ne')                
-                
-                print  "Trying: extend_profile('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)"
-                loop_extprof('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,
-                             center=0.98,width=0.01,smooth=None)                
-                os.rename('profile_te.extpy','profile_te')
-                
-                print
-                print  'Using extended profiles'
-                print
-            elif next == 'N':
-                print  'Using default profiles'
-            else:
-                print '*** Improper response ***'
+                if next == 'Y':
+                    print  "Trying: extend_profile('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)"
+                    loop_extprof('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,
+                                 center=0.98,width=0.01,smooth=None)
+                    os.rename('profile_ne.extpy','profile_ne')                
+                    
+                    print  "Trying: extend_profile('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)"
+                    loop_extprof('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,
+                                 center=0.98,width=0.01,smooth=None)                
+                    os.rename('profile_te.extpy','profile_te')
+                    
+                    print
+                    print  'Using extended profiles'
+                    print
+                elif next == 'N':
+                    print  'Using default profiles'
+                else:
+                    print '*** Improper response ***'
         
         os.chdir('..')
     
@@ -126,11 +128,19 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         print
         
         if machine in ['AUG']:
-            print  '>>> Please wait for job m3dc1_efit to finish'
-            print  '>>> Then use IDL to make current.dat from find_aug_currents.pro'
+            while not os.path.exists('time_000.h5'):
+                sleep(10)
+            print  '>>> uni_efit time_000.h5 created'
+            print  '>>> Use IDL to make current.dat from find_aug_currents.pro'
             print  '>>> Put this current.dat into efit/ folder'
-            raw_input('>>> Press <ENTER> twice when finished')
-            raw_input('>>> Press <ENTER> again to proceed')
+                
+            if interactive:            
+                raw_input('>>> Press <ENTER> twice when finished')
+                raw_input('>>> Press <ENTER> again to proceed')
+            else:
+                print  '>>> Pausing 3 minutes while you do this'
+                sleep(180)
+                
         
         os.chdir('..')
     
@@ -157,17 +167,20 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         os.chdir('uni_equil/')
         mod_C1input(C1inputs)
         
-        while True:
-            min_iter = raw_input('>>> Please enter minimum iteration number: ')
-
-            try:
-                min_iter = int(min_iter)
-                if min_iter < 1:
-                    print '*** min_iter must be greater than or equal to 1 ***'                    
-                else:
-                    break
-            except ValueError:
-                print '*** min_iter must be an integer ***'
+        if interactive:
+            while True:
+                min_iter = raw_input('>>> Please enter minimum iteration number: ')
+    
+                try:
+                    min_iter = int(min_iter)
+                    if min_iter < 1:
+                        print '*** min_iter must be greater than or equal to 1 ***'                    
+                    else:
+                        break
+                except ValueError:
+                    print '*** min_iter must be an integer ***'
+        else:
+            min_iter = 1
         
         iter = 0
         for iter in range(1,min_iter):
@@ -197,39 +210,54 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             os.mkdir('iter_'+str(iter))
             move_iter('iter_'+str(iter)+'/')
         
-            print '>>> Check the equilibrium match for iter_'+str(iter)
-        
-            next = '-'
+            if interactive:
+                
+                print '>>> Check the equilibrium match for iter_'+str(iter)
             
+                next = '-'
+                
+                while next not in ['Y','N']:
+                    
+                    next = raw_input('>>> Would you like to do another iteration? (Y/N) ')
+                    
+                    if next == 'Y':
+                        iter += 1
+                    elif next == 'N':
+                        break
+                    else:
+                        print '*** Improper response ***'
+            else:
+                next = 'N'
+            
+        else: 
+            print '>>> Continuing to mesh adaptation'
+            print '>>> Check the equilibrium match for iter_'+str(iter)
+            
+        
+        print
+        print '>>> Stopped equilibrium iteration after ',iter,' iterations'
+        
+        os.chdir('..')        
+        
+        if interactive:
+            
+            next = '-'
+                
             while next not in ['Y','N']:
                 
-                next = raw_input('>>> Would you like to do another iteration? (Y/N) ')
-                
+                next = raw_input('>>> Would you like to continue onto mesh adaptation? (Y/N) ')
+    
                 if next == 'Y':
-                    iter += 1
+                    mysh.cp('uni_equil/iter_'+str(iter)+'/current.dat','uni_equil/current.dat.good')
+                    continue
                 elif next == 'N':
-                    break
+                    return
                 else:
                     print '*** Improper response ***'
         
-        print
-        print '>>> You stopped equilibrium iteration after ',iter,' iterations'
-        
-        next = '-'
-        os.chdir('..')
-            
-        while next not in ['Y','N']:
-            
-            next = raw_input('>>> Would you like to continue onto mesh adaptation? (Y/N) ')
-
-            if next == 'Y':
-                mysh.cp('uni_equil/iter_'+str(iter)+'/current.dat','uni_equil/current.dat.good')
-                continue
-            elif next == 'N':
-                return
-            else:
-                print '*** Improper response ***'
-                
+        else:
+            mysh.cp('uni_equil/iter_'+str(iter)+'/current.dat','uni_equil/current.dat.good')
+                    
     
         task = 'adapt'
         
@@ -276,37 +304,60 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
         print
     
     
-    while True:
+    if interactive:
+        ncalc = None
+    else:
+        ncalc = 0
         
+    
+    while True:
+
         if task == 'calculation':
             
-            print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-            print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-            print
-            print '>>> What kind of calculation would you like to perform?'
-            print '>>> 1)  Equilibrium'
-            print '>>> 2)  Linear stability'
-            print '>>> 3)  Linear 3D response'
-            print '>>> 4)  Examine results with IDL'
-            print
-            
-            calcs = {'0':'exit',
-                     '1':'equilibrium',
-                     '2':'stability',
-                     '3':'response',
-                     '4':'examine'}
-            
-            option = '-'
-            
-            while option not in calcs:
-                option = raw_input('>>> Please enter the desired option (1-4, 0 to exit): ')
-                if option not in calcs:
-                    print '*** Improper response ***'
-                    
-            print
-            
-            task = calcs[option]
-
+            if interactive:
+                
+                print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
+                print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
+                print
+                print '>>> What kind of calculation would you like to perform?'
+                print '>>> 1)  Equilibrium'
+                print '>>> 2)  Linear stability'
+                print '>>> 3)  Linear 3D response'
+                print '>>> 4)  Examine results with IDL'
+                print
+                
+                calcs = {'0':'exit',
+                         '1':'equilibrium',
+                         '2':'stability',
+                         '3':'response',
+                         '4':'examine'}
+                
+                option = '-'
+                
+                while option not in calcs:
+                    option = raw_input('>>> Please enter the desired option (1-4, 0 to exit): ')
+                    if option not in calcs:
+                        print '*** Improper response ***'
+                        
+                print
+                
+                task = calcs[option]
+                
+            else:
+                
+                if ncalc == 0:
+                    task = 'equilibrium'
+                elif ncalc == 1:
+                    task = 'response'
+                    ntor = '2'
+                    nflu = '1'
+                elif ncalc == 2:
+                    task = 'response'
+                    ntor = '2'
+                    nflu = '2'
+                else:
+                    task = 'exit'
+                
         
         if task == 'exit':
             print 'Exiting'
@@ -330,9 +381,13 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             print
             
             print  '>>> Job m3dc1_equil submitted'
-            print  '>>> You can do other calculations in the meantime'
-            raw_input('>>> Press <ENTER> twice to start another calculation')
-            raw_input('>>> Press <ENTER> again to proceed')
+            
+            if interactive:
+                print  '>>> You can do other calculations in the meantime'
+                raw_input('>>> Press <ENTER> twice to start another calculation')
+                raw_input('>>> Press <ENTER> again to proceed')
+            else:
+                ncalc += 1
             
             os.chdir('..')
             print
@@ -345,25 +400,27 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print
         
-            while True:
-                ntor = raw_input('>>> Please enter the desired ntor: ')
-
-                try:
-                    int(ntor)
-                    break
-                except ValueError:
-                    print '*** ntor must be an integer ***'
-
-
-            nflu = ''
-            while nflu not in ['1','2']:
-                
-                nflu = raw_input('>>> How many fluids? (1 or 2) ')
+            if interactive:
+                while True:
+                    ntor = raw_input('>>> Please enter the desired ntor: ')
+    
+                    try:
+                        int(ntor)
+                        break
+                    except ValueError:
+                        print '*** ntor must be an integer ***'
+    
+    
+                nflu = ''
+                while nflu not in ['1','2']:
                     
-                if nflu not in ['1','2']:
-                    print '*** Improper response ***'                
+                    nflu = raw_input('>>> How many fluids? (1 or 2) ')
+                        
+                    if nflu not in ['1','2']:
+                        print '*** Improper response ***'                
+                
+                print
             
-            print
             print 'Calculating stability for '+nflu+'F and ntor = ' + ntor
     
             ndir = 'n='+ntor+'/'
@@ -386,9 +443,13 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             call(submit_batch)
             print
             print  '>>> Job m3dc1_stab submitted'
-            print  '>>> You can do other calculations in the meantime'
-            raw_input('>>> Press <ENTER> twice to start another calculation')
-            raw_input('>>> Press <ENTER> again to proceed')
+            
+            if interactive:
+                print  '>>> You can do other calculations in the meantime'
+                raw_input('>>> Press <ENTER> twice to start another calculation')
+                raw_input('>>> Press <ENTER> again to proceed')
+            else:
+                ncalc += 1
             
             os.chdir('../..')
             print
@@ -401,26 +462,27 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print
                 
-               
-            while True:
-                ntor = raw_input('>>> Please enter the desired ntor: ')
-
-                try:
-                    int(ntor)
-                    break
-                except ValueError:
-                    print '*** ntor must be an integer ***'
-                
-            nflu = ''
-            while nflu not in ['1','2']:
-                
-                nflu = raw_input('>>> How many fluids? (1 or 2) ')
+            if interactive:  
+                while True:
+                    ntor = raw_input('>>> Please enter the desired ntor: ')
+    
+                    try:
+                        int(ntor)
+                        break
+                    except ValueError:
+                        print '*** ntor must be an integer ***'
                     
-                if nflu not in ['1','2']:
-                    print '*** Improper response ***'
-                         
-            
-            print
+                nflu = ''
+                while nflu not in ['1','2']:
+                    
+                    nflu = raw_input('>>> How many fluids? (1 or 2) ')
+                        
+                    if nflu not in ['1','2']:
+                        print '*** Improper response ***'
+                             
+                
+                print
+                
             print 'Calculating '+nflu+'F response for ntor = ' + ntor
     
             ndir = 'n='+ntor+'/'
@@ -456,10 +518,13 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
                 
             print
             print  '>>> Jobs m3dc1_iu and m3dc1_il submitted'
-            print  '>>> You can do other calculations in the meantime'
-            raw_input('>>> Press <ENTER> twice to start another calculation')
-            raw_input('>>> Press <ENTER> again to proceed')
-            
+            if interactive:            
+                print  '>>> You can do other calculations in the meantime'
+                raw_input('>>> Press <ENTER> twice to start another calculation')
+                raw_input('>>> Press <ENTER> again to proceed')
+            else:
+                ncalc += 1
+                
             os.chdir('../..')
             print
             print
@@ -472,40 +537,45 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None):
             print ">>> Does 'ne', 'te', 'ti', or 'p' go negative anywhere?"
             print
             
-            next = '-'
-            
-            while next not in ['Y','N']:
+            if interactive:
+                next = '-'
                 
-                next = raw_input('>>> Would you like to check the quality of the equilibrium? (Y/N) ')
-                
-                if next == 'Y':
-                    print 'Launching IDL for checking quality of the equilibrium'
-                    print 'Recommend the following commands, but modify as need be'
-                    print 'e.g., rw1_equil/ can be replaced by a completed response or stability run in n=2/'
-                    print "plot_shape,['uni_efit/','rw1_equil/']+'C1.h5',rrange=[1.0,2.5],zrange=[-1.25,1.25],thick=3,/iso"
-                    print "plot_flux_average,'jy',-1,file=['uni_efit/','rw1_equil/']+'C1.h5',/mks,/norm,table=39,thick=3,bins=400,points=400"
-                    print "plot_field,'ti',-1,R,Z,file='rw1_equil/C1.h5',/mks,points=400,cutz=0.,/ylog"
-                    print
+                while next not in ['Y','N']:
                     
-                    call(['idl'])
+                    next = raw_input('>>> Would you like to check the quality of the equilibrium? (Y/N) ')
                     
-                    okay = '-'
-                    
-                    while okay not in ['Y','N']:
-                        okay = '>>> Is the equilibrium good enough to continue? (Y/N) '
+                    if next == 'Y':
+                        print 'Launching IDL for checking quality of the equilibrium'
+                        print 'Recommend the following commands, but modify as need be'
+                        print 'e.g., rw1_equil/ can be replaced by a completed response or stability run in n=2/'
+                        print "plot_shape,['uni_efit/','rw1_equil/']+'C1.h5',rrange=[1.0,2.5],zrange=[-1.25,1.25],thick=3,/iso"
+                        print "plot_flux_average,'jy',-1,file=['uni_efit/','rw1_equil/']+'C1.h5',/mks,/norm,table=39,thick=3,bins=400,points=400"
+                        print "plot_field,'ti',-1,R,Z,file='rw1_equil/C1.h5',/mks,points=400,cutz=0.,/ylog"
+                        print
                         
-                        if okay == 'Y':
-                            continue
-                        elif okay == 'N':
-                            return
-                        else:
-                            print '*** Improper response ***'
-                
-                elif next == 'N':
-                    print  'Continuing, but equilibrium may have problems'
-                else:
-                    print '*** Improper response ***'
-    
+                        call(['idl'])
+                        
+                        okay = '-'
+                        
+                        while okay not in ['Y','N']:
+                            okay = '>>> Is the equilibrium good enough to continue? (Y/N) '
+                            
+                            if okay == 'Y':
+                                continue
+                            elif okay == 'N':
+                                return
+                            else:
+                                print '*** Improper response ***'
+                    
+                    elif next == 'N':
+                        print  'Continuing, but equilibrium may have problems'
+                    else:
+                        print '*** Improper response ***'
+            
+            else:
+                print ">>> In non-interactive mode"
+                print ">>> Please launch IDL separately"
+            
         task = 'calculation'
     
     return    

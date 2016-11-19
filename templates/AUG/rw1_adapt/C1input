@@ -135,7 +135,7 @@
 	zlim2 = 0.	! limiting value of z
 	th_gs = 0.5
 	igs = 100	! number of grad-shafranov iterations
-	pedge = 5e-4
+	tiedge = 5e-4
 	expn = 0.
 	divertors = 0
 	xnull = 1.4
