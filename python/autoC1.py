@@ -15,8 +15,8 @@ import fileinput
 from subprocess import call, check_output
 from time import sleep
 import re
-from glob import glob
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
 
 import my_shutil as mysh
 from extend_profile import extend_profile
@@ -25,12 +25,16 @@ from move_iter import move_iter
 from mod_C1input import mod_C1input
 from extract_profiles import extract_profiles
 
-def autoC1(task='setup',machine='DIII-D',C1inputs=None,
-           interactive=True):
+import C1py
+
+def autoC1(task='all',machine='DIII-D',C1inputs=None,
+           interactive=True, OMFIT=False, calcs=[(0,0,0)]):
     
     if task == 'all':
         task = 'setup'
 
+    if OMFIT:
+        interactive = False
 
     template = os.environ.get('AUTOC1_HOME')+'/templates/'+ machine + '/'
     
@@ -61,9 +65,10 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None,
         print
         
         os.chdir('efit/')
-        mysh.cp(r'g*.*','geqdsk')
 
-        extract_profiles(machine=machine)
+        if not OMFIT:
+            mysh.cp(r'g*.*','geqdsk')
+            extract_profiles(machine=machine)
 
         if machine in ['DIII-D','NSTX-U']:
 
@@ -130,17 +135,7 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None,
         if machine in ['AUG']:
             while not os.path.exists('time_000.h5'):
                 sleep(10)
-            print  '>>> uni_efit time_000.h5 created'
-            print  '>>> Use IDL to make current.dat from find_aug_currents.pro'
-            print  '>>> Put this current.dat into efit/ folder'
-                
-            if interactive:            
-                raw_input('>>> Press <ENTER> twice when finished')
-                raw_input('>>> Press <ENTER> again to proceed')
-            else:
-                print  '>>> Pausing 3 minutes while you do this'
-                sleep(180)
-                
+            call("\idl -e '@get_aug_currents'",shell=True)
         
         os.chdir('..')
     
@@ -256,6 +251,27 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None,
                     print '*** Improper response ***'
         
         else:
+            
+            f = plt.figure(figsize=(16,5))
+            gs= gridspec.GridSpec(1,4,width_ratios=[4,5,5,5])
+            fs = 0.5
+            ax = plt.subplot(gs[0])
+            C1py.plot_shape(folder=['uni_efit/','uni_equil/iter_1/'],
+                            rrange=[1.0,2.5],zrange=[-1.25,1.25],
+                            fs=fs,ax=ax,title='Shape')
+            leg = ax.legend(fontsize=24*fs,frameon=True,loc=[0.6,0.85])
+            leg.get_frame().set_facecolor('white')
+            plts = [('ne',r'$n_e$',plt.subplot(gs[1])),
+                    ('te',r'$T_e$',plt.subplot(gs[2])),
+                    ('ti',r'$T_i$',plt.subplot(gs[3]))]
+            for field,title,ax in plts:
+                C1py.plot_field(field,filename='uni_equil/iter_1/C1.h5',
+                                slice=-1,rrange=[1.0,2.5],zrange=[-1.25,1.25],
+                                lcfs=True,range=[-1,1],fs=fs,ax=ax,
+                                title=title,palette='coolwarm')
+            f.tight_layout()
+            f.savefig('equil_check.pdf')
+            
             mysh.cp('uni_equil/iter_'+str(iter)+'/current.dat','uni_equil/current.dat.good')
                     
     
@@ -305,11 +321,16 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None,
     
     
     if interactive:
-        ncalc = None
+        calcs = None
     else:
         ncalc = 0
-        
     
+    opts = {'0':'exit',
+            '1':'equilibrium',
+            '2':'stability',
+            '3':'response',
+            '4':'examine'}
+
     while True:
 
         if task == 'calculation':
@@ -326,42 +347,36 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None,
                 print '>>> 4)  Examine results with IDL'
                 print
                 
-                calcs = {'0':'exit',
-                         '1':'equilibrium',
-                         '2':'stability',
-                         '3':'response',
-                         '4':'examine'}
-                
                 option = '-'
                 
-                while option not in calcs:
+                while option not in opts:
                     option = raw_input('>>> Please enter the desired option (1-4, 0 to exit): ')
-                    if option not in calcs:
+                    if option not in opts:
                         print '*** Improper response ***'
                         
                 print
                 
-                task = calcs[option]
+                task = opts[option]
                 
             else:
-                
-                if ncalc == 0:
-                    task = 'equilibrium'
-                elif ncalc == 1:
-                    task = 'response'
-                    ntor = '2'
-                    nflu = '1'
-                elif ncalc == 2:
-                    task = 'response'
-                    ntor = '2'
-                    nflu = '2'
+                    
+                if ncalc == len(calcs):
+                    task = exit
                 else:
-                    task = 'exit'
-                
+                    
+                    option, ntor, nflu = calcs[ncalc]
+                    task = opts[option]
+                    print task + ' calculation'
+                    if ntor is not None:
+                        print '   n='+ntor 
+                    if nflu is not None:
+                        print '   '+nflu+'-fluid'
+                    print
         
         if task == 'exit':
             print 'Exiting'
             return
+            
         elif task == 'equilibrium':
             
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
@@ -386,8 +401,6 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None,
                 print  '>>> You can do other calculations in the meantime'
                 raw_input('>>> Press <ENTER> twice to start another calculation')
                 raw_input('>>> Press <ENTER> again to proceed')
-            else:
-                ncalc += 1
             
             os.chdir('..')
             print
@@ -448,8 +461,6 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None,
                 print  '>>> You can do other calculations in the meantime'
                 raw_input('>>> Press <ENTER> twice to start another calculation')
                 raw_input('>>> Press <ENTER> again to proceed')
-            else:
-                ncalc += 1
             
             os.chdir('../..')
             print
@@ -522,8 +533,6 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None,
                 print  '>>> You can do other calculations in the meantime'
                 raw_input('>>> Press <ENTER> twice to start another calculation')
                 raw_input('>>> Press <ENTER> again to proceed')
-            else:
-                ncalc += 1
                 
             os.chdir('../..')
             print
@@ -577,6 +586,8 @@ def autoC1(task='setup',machine='DIII-D',C1inputs=None,
                 print ">>> Please launch IDL separately"
             
         task = 'calculation'
+        if not interactive:
+            ncalc +=1 
     
     return    
 
