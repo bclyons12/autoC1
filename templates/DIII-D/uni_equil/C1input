@@ -105,7 +105,8 @@
 
 ! Transport Parameters
 ! ====================
-	eta_wall = 100.
+	eta_wall = 1.
+	eta_vac = 1.
 	iresfunc = 4
 	eta0 = 1e-4
 	etar = 1e-8	! resistivity = etar + eta0/T^(3/2)
