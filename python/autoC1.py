@@ -270,6 +270,7 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
                                 lcfs=True,range=[-1,1],fs=fs,ax=ax,
                                 title=title,palette='coolwarm')
             f.tight_layout()
+            plt.show()
             f.savefig('equil_check.pdf')
             
             mysh.cp('uni_equil/iter_'+str(iter)+'/current.dat','uni_equil/current.dat.good')
