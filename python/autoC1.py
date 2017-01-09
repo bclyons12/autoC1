@@ -52,7 +52,7 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
     if C1arch == 'sunfire.r6':
         submit_batch = ['sbatch','batch_slurm']
     elif C1arch == 'saturn':
-        submit_batch = ['qsub','batch_torque']
+        submit_batch = ['sbatch','batch_slurm']
     else:
         print 'Error: autoC1 does not support M3DC1_ARCH = '+C1arch
         return 

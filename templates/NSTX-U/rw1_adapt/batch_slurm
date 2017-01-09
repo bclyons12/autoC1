@@ -1,11 +1,23 @@
 #!/bin/bash -vx
-#SBATCH --partition=mque_r6
+
+if   [[ "$M3DC1_ARCH" == "sunfire.r6" ]]; then
+#SBATCH --partition=mque
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH -J m3dc1_adapt
 #SBATCH -t 4:00:00
 #SBATCH --mem 60000
+elif [[ "$M3DC1_ARCH" == "saturn" ]]; then
+#SBATCH --partition=medium
+#SBATCH --nodes=1
+#SBATCH --ntasks=8
+#SBATCH -t 4:00:00
+#SBATCH --mem 60000
+else
+echo "$M3DC1_ARCH not supported"
+fi
+
+#SBATCH -J m3dc1_adapt
 
 # Run M3D-C1
-rm -f C1stdout
-mpiexec --bind-to none -np $SLURM_NTASKS m3dc1_2d >& C1stdout
+/bin/rm -f C1stdout
+mpiexec --bind-to none -np 1 m3dc1_2d >& C1stdout
