@@ -50,9 +50,87 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
     C1arch = os.environ.get('M3DC1_ARCH')
 
     if C1arch == 'sunfire.r6':
-        submit_batch = ['sbatch','batch_slurm']
+
+        part_small = 'kruskal'
+        part_large = 'mque'
+        
+        batch_options = {'efit':['--partition='+part_small,
+                                 '--nodes=1',
+                                 '--ntasks=16',
+                                 '--time=0:10:00',
+                                 '--mem=32000',
+                                 '--job-name=m3dc1_efit'],
+                         'uni_equil':['--partition='+part_small,
+                                      '--nodes=1',
+                                      '--ntasks=16',
+                                      '--time=0:10:00',
+                                      '--mem=32000',
+                                      '--job-name=m3dc1_eq'],
+                         'adapt':['--partition='+part_large,
+                                  '--nodes=1',
+                                  '--ntasks=1',
+                                  '--time=4:00:00',
+                                  '--mem=60000',
+                                  '--job-name=m3dc1_adapt'],
+                         'equilibrium':['--partition='+part_large,
+                                        '--nodes=1',
+                                        '--ntasks=16',
+                                        '--time=1:00:00',
+                                        '--mem=120000',
+                                        '--job-name=m3dc1_equil'],
+                         'stability':['--partition='+part_large,
+                                      '--nodes=1',
+                                      '--ntasks=32',
+                                      '--time=12:00:00',
+                                      '--mem=256000',
+                                      '--job-name=m3dc1_stab'],
+                         'response':['--partition='+part_large,
+                                     '--nodes=1',
+                                     '--ntasks=32',
+                                     '--time=4:00:00',
+                                     '--mem=256000']}
+        
     elif C1arch == 'saturn':
-        submit_batch = ['sbatch','batch_slurm']
+        
+        part_small = 'short'
+        part_large = 'medium'
+        
+        batch_options = {'efit':['--partition='+part_small,
+                                 '--nodes=1',
+                                 '--ntasks=16',
+                                 '--time=0:10:00',
+                                 '--mem=32000',
+                                 '--job-name=m3dc1_efit'],
+                         'uni_equil':['--partition='+part_small,
+                                      '--nodes=1',
+                                      '--ntasks=16',
+                                      '--time=0:10:00',
+                                      '--mem=32000',
+                                      '--job-name=m3dc1_eq'],
+                         'adapt':['--partition='+part_large,
+                                  '--nodes=1',
+                                  '--ntasks=8',
+                                  '--time=4:00:00',
+                                  '--mem=60000',
+                                  '--job-name=m3dc1_adapt'],
+                         'equilibrium':['--partition='+part_small,
+                                        '--nodes=1',
+                                        '--ntasks=16',
+                                        '--time=1:00:00',
+                                        '--mem=120000',
+                                        '--job-name=m3dc1_equil'],
+                         'stability':['--partition='+part_large,
+                                      '--nodes=1',
+                                      '--ntasks=16',
+                                      '--time=24:00:00',
+                                      '--mem=120000',
+                                      '--job-name=m3dc1_stab'],
+                         'response':['--partition='+part_large,
+                                     '--nodes=1',
+                                     '--ntasks=16',
+                                     '--time=8:00:00',
+                                     '--mem=120000']}
+        
     else:
         print 'Error: autoC1 does not support M3DC1_ARCH = '+C1arch
         return 
@@ -129,6 +207,8 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         load_equil('efit/','uni_efit/')
         os.chdir('uni_efit/')
         mod_C1input(C1inputs)
+        submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+        write_command(submit_batch)
         call(submit_batch)
         print
         
@@ -162,6 +242,8 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         os.chdir('uni_equil/')
         mod_C1input(C1inputs)
         
+        submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+        
         if interactive:
             while True:
                 min_iter = raw_input('>>> Please enter minimum iteration number: ')
@@ -180,6 +262,7 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         iter = 0
         for iter in range(1,min_iter):
             
+            write_command(submit_batch)
             call(submit_batch)
             print
             while not os.path.exists('time_000.h5'):
@@ -195,6 +278,7 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         
         while next != 'N':
         
+            write_command(submit_batch)
             call(submit_batch)
             print
             while not os.path.exists('time_000.h5'):
@@ -300,6 +384,8 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         os.chdir('rw1_adapt/')
         mod_C1input(C1inputs)
         
+        submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+        write_command(submit_batch)
         call(submit_batch)
         print
         
@@ -393,6 +479,8 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
             os.chdir('rw1_equil/')
             mod_C1input(C1inputs)
         
+            submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+            write_command(submit_batch)
             call(submit_batch)
             print
             
@@ -454,6 +542,8 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
         
+            submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+            write_command(submit_batch)
             call(submit_batch)
             print
             print  '>>> Job m3dc1_stab submitted'
@@ -514,6 +604,9 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
             mod_C1input(C1inputs)
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
+            submit_batch = ['sbatch']+batch_options[task]
+            submit_batch += ['--job-name=m3dc1_iu']+['batch_slurm']
+            write_command(submit_batch)
             call(submit_batch)
             
             os.chdir('..')
@@ -526,6 +619,9 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
             mod_C1input(C1inputs)
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
+            submit_batch = ['sbatch']+batch_options[task]
+            submit_batch += ['--job-name=m3dc1_il']+['batch_slurm']
+            write_command(submit_batch)
             call(submit_batch)
                 
             print
@@ -647,7 +743,7 @@ def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
     return
         
         
-        
-        
-        
-        
+def write_command(submit_batch):
+    
+    with open("submit_command","w") as h:
+        h.write(' '.join(submit_batch))
