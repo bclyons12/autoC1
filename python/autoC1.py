@@ -10,13 +10,13 @@ Date edited:
 """
 
 import os
+import sys
 import shutil as sh
 import fileinput
-from subprocess import call, check_output
+from subprocess import call, check_output, Popen
 from time import sleep
 import re
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
 
 import my_shutil as mysh
 from extend_profile import extend_profile
@@ -24,8 +24,6 @@ from load_equil import load_equil
 from move_iter import move_iter
 from mod_C1input import mod_C1input
 from extract_profiles import extract_profiles
-
-import C1py
 
 def autoC1(task='all',machine='DIII-D',C1inputs=None,
            interactive=True, OMFIT=False, calcs=[(0,0,0)]):
@@ -113,7 +111,7 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
                                   '--time=4:00:00',
                                   '--mem=60000',
                                   '--job-name=m3dc1_adapt'],
-                         'equilibrium':['--partition='+part_small,
+                         'equilibrium':['--partition='+part_large,
                                         '--nodes=1',
                                         '--ntasks=16',
                                         '--time=1:00:00',
@@ -336,27 +334,8 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         
         else:
             
-            f = plt.figure(figsize=(16,5))
-            gs= gridspec.GridSpec(1,4,width_ratios=[4,5,5,5])
-            fs = 0.5
-            ax = plt.subplot(gs[0])
-            C1py.plot_shape(folder=['uni_efit/','uni_equil/iter_1/'],
-                            rrange=[1.0,2.5],zrange=[-1.25,1.25],
-                            fs=fs,ax=ax,title='Shape')
-            leg = ax.legend(fontsize=24*fs,frameon=True,loc=[0.6,0.85])
-            leg.get_frame().set_facecolor('white')
-            plts = [('ne',r'$n_e$',plt.subplot(gs[1])),
-                    ('te',r'$T_e$',plt.subplot(gs[2])),
-                    ('ti',r'$T_i$',plt.subplot(gs[3]))]
-            for field,title,ax in plts:
-                C1py.plot_field(field,filename='uni_equil/iter_1/C1.h5',
-                                slice=-1,rrange=[1.0,2.5],zrange=[-1.25,1.25],
-                                lcfs=True,range=[-1,1],fs=fs,ax=ax,
-                                title=title,palette='coolwarm')
-            f.tight_layout()
-            plt.show()
-            f.savefig('equil_check.pdf')
-            
+            plot_script = os.environ.get('AUTOC1_HOME')+'/python/plot_equil_check.py'
+            Popen([sys.executable,'-u',plot_script])
             mysh.cp('uni_equil/iter_'+str(iter)+'/current.dat','uni_equil/current.dat.good')
                     
     
@@ -747,3 +726,5 @@ def write_command(submit_batch):
     
     with open("submit_command","w") as h:
         h.write(' '.join(submit_batch))
+    
+    return
