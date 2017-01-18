@@ -373,6 +373,11 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
             sleep(10)
         
         print  '>>> Mesh adaptation complete'
+
+        with open('job_id.txt','r') as f:
+            jobid = f.read().rstrip('\n')
+        print  '>>> Killing m3dc1_adapt job #'+jobid
+        call(['scancel',jobid])
     
         os.chdir('..')
     
