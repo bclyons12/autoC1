@@ -25,9 +25,10 @@ from move_iter import move_iter
 from mod_C1input import mod_C1input
 from extract_profiles import extract_profiles
 
-def autoC1(task='all',machine='DIII-D',C1inputs=None,
-           adapt_folder='rw1_adapt', calcs=[(0,0,0)],
-           interactive=True, OMFIT=False):
+def autoC1(task='all',machine='DIII-D',C1input_mod=None,
+           calcs=[(0,0,0)], interactive=True, OMFIT=False,
+           setup_folder='efit',uni_equil_folder='uni_equil',
+           adapt_folder='rw1_adapt'):
     
     if task == 'all':
         task = 'setup'
@@ -89,6 +90,7 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
                                      '--time=4:00:00',
                                      '--mem=256000']}
         
+        
     elif C1arch == 'saturn':
         
         part_small = 'short'
@@ -134,6 +136,88 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         print 'Error: autoC1 does not support M3DC1_ARCH = '+C1arch
         return 
 
+        
+    # Setup C1input
+    
+    C1input_base = template+'C1input_base'
+
+    C1input_options = {'efit':{'ntimemax':'0',
+                               'ntimepr':'1',
+                               'iread_eqdsk':'1',
+                               'irmp':'0',
+                               'extsubtract':'0',
+                               'max_ke':'0',
+                               'itime_independent':'1',
+                               'idevice':'4',
+                               'eps':'0',
+                               'db_fac':'0.0',
+                               'mesh_filename':"'part.smb'",
+                               'icsubtract':'0',
+                               'igs':'0',
+                               'ntor':'0'},
+                       'uni_equil':{'ntimemax':'0',
+                                    'ntimepr':'1',
+                                    'iread_eqdsk':'3',
+                                    'irmp':'0',
+                                    'extsubtract':'0',
+                                    'max_ke':'0',
+                                    'itime_independent':'1',
+                                    'idevice':'-1',
+                                    'eps':'0',
+                                    'db_fac':'0.0',
+                                    'mesh_filename':"'part.smb'",
+                                    'icsubtract':'1',
+                                    'ntor':'0'},
+                       'adapt':{'ntimemax':'0',
+                                'ntimepr':'1',
+                                'iread_eqdsk':'3',
+                                'irmp':'0',
+                                'extsubtract':'0',
+                                'iadapt':'1',
+                                'adapt_smooth':'0.02',
+                                'max_ke':'0',
+                                'itime_independent':'1',
+                                'idevice':'-1',
+                                'eps':'0',
+                                'db_fac':'0.0',
+                                'mesh_filename':"'diiid0.02.smb'",
+                                'icsubtract':'1',
+                                'ntor':'0'},
+                       'equilibrium':{'ntimemax':'0',
+                                      'ntimepr':'1',
+                                      'iread_eqdsk':'3',
+                                      'irmp':'0',
+                                      'extsubtract':'0',
+                                      'max_ke':'0',
+                                      'itime_independent':'1',
+                                      'idevice':'-1',
+                                      'eps':'0',
+                                      'db_fac':'0.0',
+                                      'mesh_filename':"'part.smb'",
+                                      'icsubtract':'1',
+                                      'ntor':'0'},
+                       'stability':{'iread_eqdsk':'3',
+                                    'irmp':'0',
+                                    'extsubtract':'0',
+                                    'max_ke':'1',
+                                    'itime_independent':'0',
+                                    'idevice':'-1',
+                                    'eps':'1e-8',
+                                    'mesh_filename':"'part.smb'",
+                                    'icsubtract':'1'},
+                       'response':{'ntimemax':'1',
+                                   'ntimepr':'1',
+                                   'iread_eqdsk':'3',
+                                   'irmp':'1',
+                                   'extsubtract':'1',
+                                   'max_ke':'0',
+                                   'itime_independent':'1',
+                                   'idevice':'-1',
+                                   'eps':'0',
+                                   'mesh_filename':"'part.smb'",
+                                   'icsubtract':'1'}}
+        
+        
     if task == 'setup':
 
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
@@ -141,7 +225,7 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print
         
-        os.chdir('efit/')
+        os.chdir(setup_folder)
 
         if not OMFIT:
             mysh.cp(r'g*.*','geqdsk')
@@ -200,12 +284,20 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print
     
-        if not os.path.isdir('uni_efit/'):
-            sh.copytree(template+'uni_efit/','uni_efit')
+        efit_folder = 'uni_efit'
+        if os.path.isdir(efit_folder):
+            print 'Warning:  '+efit_folder+' exists and may be overwritten'
+        sh.copytree(template+'uni_efit/',efit_folder)
         
-        load_equil('efit/','uni_efit/')
-        os.chdir('uni_efit/')
-        mod_C1input(C1inputs)
+        load_equil(setup_folder,efit_folder)
+        mysh.cp(C1input_base,efit_folder+'/C1input')
+        os.chdir(efit_folder)
+        
+        C1input_efit = dict(C1input_options[task])
+        if C1input_mod is not None:
+            C1input_efit.update(C1input_mod)
+        mod_C1input(C1input_efit)
+        
         submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
         write_command(submit_batch)
         call(submit_batch)
@@ -234,12 +326,21 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print
     
-        if not os.path.isdir('uni_equil/'):
-            sh.copytree(template+'uni_equil/','uni_equil')
+        uni_equil_folder = 'uni_equil'
         
-        load_equil('efit/','uni_equil/')
-        os.chdir('uni_equil/')
-        mod_C1input(C1inputs)
+        if os.path.isdir(uni_equil_folder):
+            print 'Warning:  '+uni_equil_folder+' exists and may be overwritten'
+        sh.copytree(template+'uni_equil/',uni_equil_folder)
+        
+        load_equil(setup_folder,uni_equil_folder)
+        mysh.cp(C1input_base,uni_equil_folder+'/C1input')
+        os.chdir(uni_equil_folder)
+        
+        
+        C1input_uni_equil = dict(C1input_options[task])
+        if C1input_mod is not None:
+            C1input_uni_equil.update(C1input_mod)
+        mod_C1input(C1input_uni_equil)
         
         submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
         
@@ -326,7 +427,8 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
                 next = raw_input('>>> Would you like to continue onto mesh adaptation? (Y/N) ')
     
                 if next == 'Y':
-                    mysh.cp('uni_equil/iter_'+str(iter)+'/current.dat','uni_equil/current.dat.good')
+                    mysh.cp(uni_equil_folder+'/iter_'+str(iter)+'/current.dat',
+                            uni_equil_folder+'/current.dat.good')
                     continue
                 elif next == 'N':
                     return
@@ -337,7 +439,8 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
             
             plot_script = os.environ.get('AUTOC1_HOME')+'/python/plot_equil_check.py'
             Popen([sys.executable,'-u',plot_script])
-            mysh.cp('uni_equil/iter_'+str(iter)+'/current.dat','uni_equil/current.dat.good')
+            mysh.cp(uni_equil_folder+'/iter_'+str(iter)+'/current.dat',
+                    uni_equil_folder+'/current.dat.good')
                     
     
         task = 'adapt'
@@ -360,11 +463,17 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         
         sh.copytree(template+'rw1_adapt/',adapt_folder)
         
-        load_equil('efit/',adapt_folder)
-        mysh.cp('uni_equil/current.dat.good',
+        load_equil(setup_folder,adapt_folder)
+        mysh.cp(C1input_base,adapt_folder+'/C1input')
+        mysh.cp(uni_equil_folder+'/current.dat.good',
                 adapt_folder+'/current.dat')
         os.chdir(adapt_folder)
-        mod_C1input(C1inputs)
+        
+        
+        C1input_adapt = dict(C1input_options[task])
+        if C1input_mod is not None:
+            C1input_adapt.update(C1input_mod)
+        mod_C1input(C1input_adapt)
         
         submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
         write_command(submit_batch)
@@ -462,10 +571,15 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
             sh.copytree(template+'rw1_equil/',equil_folder)
         
             load_equil(adapt_folder,equil_folder)
+            mysh.cp(C1input_base,equil_folder+'/C1input')
             mysh.cp(adapt_folder+'/adapted0.smb', 
                     equil_folder+'/adapted0.smb')
             os.chdir(equil_folder)
-            mod_C1input(C1inputs)
+            
+            C1input_equil = dict(C1input_options[task])
+            if C1input_mod is not None:
+                C1input_equil.update(C1input_mod)
+            mod_C1input(C1input_equil)
         
             submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
             write_command(submit_batch)
@@ -524,13 +638,21 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
             sh.copytree(template+'n=/'+base_folder,stab_folder)
         
             load_equil('../'+adapt_folder,stab_folder)
+            mysh.cp(C1input_base,stab_folder+'/C1input')
             mysh.cp('../'+adapt_folder+'/adapted0.smb',
                     stab_folder+'/adapted0.smb')
             os.chdir(stab_folder)
-            mod_C1input(C1inputs)
-            for line in fileinput.input('C1input',inplace=1):
-                print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
-        
+            
+            C1input_stab = dict(C1input_options[task])
+            C1input_stab.update({'ntor':ntor})
+            if nflu == '1':
+                C1input_stab.update({'db_fac':'0.0'})
+            else if nflu == '2':
+                C1input_stab.update({'db_fac':'1.0'})
+            if C1input_mod is not None:
+                C1input_stab.update(C1input_mod)
+            mod_C1input(C1input_stab)
+            
             submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
             write_command(submit_batch)
             call(submit_batch)
@@ -582,18 +704,29 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
                 os.mkdir(ndir)
             os.chdir(ndir)
             
+            C1input_resp = dict(C1input_options[task])
+            C1input_resp.update({'ntor':ntor})
+            if nflu == '1':
+                C1input_resp.update({'db_fac':'0.0'})
+            else if nflu == '2':
+                C1input_resp.update({'db_fac':'1.0'})
+            if C1input_mod is not None:
+                C1input_resp.update(C1input_mod)
+            
             for coil in ['iu','il']:
                 
                 base_folder = rot+'1_'+nflu+'f_'+coil
                 resp_folder = def_folder(rot,nflu+'f_'+coil)
                 sh.copytree(template+'n=/'+base_folder,resp_folder)
+                
                 load_equil('../'+adapt_folder,resp_folder)
+                mysh.cp(C1input_base,resp_folder+'/C1input')
                 mysh.cp('../'+adapt_folder+'/adapted0.smb', 
                         resp_folder+'/adapted0.smb')
                 os.chdir(resp_folder)
-                mod_C1input(C1inputs)
-                for line in fileinput.input('C1input',inplace=1):
-                    print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
+                
+                mod_C1input(C1input_resp)
+                
                 job_name = 'm3dc1_'+coil
                 submit_batch = ['sbatch']+batch_options[task]
                 submit_batch += ['--job-name='+job_name]+['batch_slurm']
