@@ -26,7 +26,8 @@ from mod_C1input import mod_C1input
 from extract_profiles import extract_profiles
 
 def autoC1(task='all',machine='DIII-D',C1inputs=None,
-           interactive=True, OMFIT=False, calcs=[(0,0,0)]):
+           adapt_folder='rw1_adapt', calcs=[(0,0,0)],
+           interactive=True, OMFIT=False):
     
     if task == 'all':
         task = 'setup'
@@ -37,13 +38,13 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
     template = os.environ.get('AUTOC1_HOME')+'/templates/'+ machine + '/'
     
     if machine is 'DIII-D':
-        rot = 'eb1'
+        rot = 'eb'
     elif machine is 'NSTX-U':
-        rot = 'eb1'
+        rot = 'eb'
     elif machine is 'AUG':
-        rot = 'eb1'
+        rot = 'eb'
     else:
-        rot = 'eb1'
+        rot = 'eb'
 
     C1arch = os.environ.get('M3DC1_ARCH')
 
@@ -355,12 +356,14 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print
     
-        if not os.path.isdir('rw1_adapt/'):
-            sh.copytree(template+'rw1_adapt/','rw1_adapt')
+        adapt_folder = def_folder('rw','adapt')
         
-        load_equil('efit/','rw1_adapt/')
-        mysh.cp('uni_equil/current.dat.good', 'rw1_adapt/current.dat')
-        os.chdir('rw1_adapt/')
+        sh.copytree(template+'rw1_adapt/',adapt_folder)
+        
+        load_equil('efit/',adapt_folder)
+        mysh.cp('uni_equil/current.dat.good',
+                adapt_folder+'/current.dat')
+        os.chdir(adapt_folder)
         mod_C1input(C1inputs)
         
         submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
@@ -455,12 +458,13 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print
             
-            if not os.path.isdir('rw1_equil/'):
-                sh.copytree(template+'rw1_equil/','rw1_equil')
+            equil_folder = def_folder('rw','equil')
+            sh.copytree(template+'rw1_equil/',equil_folder)
         
-            load_equil('rw1_adapt/','rw1_equil/')
-            mysh.cp('rw1_adapt/adapted0.smb', 'rw1_equil/adapted0.smb')
-            os.chdir('rw1_equil/')
+            load_equil(adapt_folder,equil_folder)
+            mysh.cp(adapt_folder+'/adapted0.smb', 
+                    equil_folder+'/adapted0.smb')
+            os.chdir(equil_folder)
             mod_C1input(C1inputs)
         
             submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
@@ -515,13 +519,14 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
                 os.mkdir(ndir)
             os.chdir(ndir)
             
-            stab = rot+'_'+nflu+'f_stab/'
-            if not os.path.isdir(stab):
-                sh.copytree(template+'n=/'+stab,stab)
+            base_folder = rot+'1_'+nflu+'f_stab'
+            stab_folder = def_folder(rot,nflu+'f_stab')
+            sh.copytree(template+'n=/'+base_folder,stab_folder)
         
-            load_equil('../rw1_adapt/',stab)
-            mysh.cp('../rw1_adapt/adapted0.smb', stab+'adapted0.smb')
-            os.chdir(stab)
+            load_equil('../'+adapt_folder,stab_folder)
+            mysh.cp('../'+adapt_folder+'/adapted0.smb',
+                    stab_folder+'/adapted0.smb')
+            os.chdir(stab_folder)
             mod_C1input(C1inputs)
             for line in fileinput.input('C1input',inplace=1):
                 print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
@@ -577,45 +582,35 @@ def autoC1(task='all',machine='DIII-D',C1inputs=None,
                 os.mkdir(ndir)
             os.chdir(ndir)
             
-            up = rot+'_'+nflu+'f_iu/'
-            low = rot+'_'+nflu+'f_il/'
-            
-            if not os.path.isdir(up):
-                sh.copytree(template+'n=/'+up,up)
-            load_equil('../rw1_adapt/',up)
-            mysh.cp('../rw1_adapt/adapted0.smb', up+'adapted0.smb')
-            os.chdir(up)
-            mod_C1input(C1inputs)
-            for line in fileinput.input('C1input',inplace=1):
-                print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
-            submit_batch = ['sbatch']+batch_options[task]
-            submit_batch += ['--job-name=m3dc1_iu']+['batch_slurm']
-            write_command(submit_batch)
-            call(submit_batch)
-            
-            os.chdir('..')
-            
-            if not os.path.isdir(low):
-                sh.copytree(template+'n=/'+low,low)
-            load_equil('../rw1_adapt/',low)
-            mysh.cp('../rw1_adapt/adapted0.smb', low+'adapted0.smb')
-            os.chdir(low)
-            mod_C1input(C1inputs)
-            for line in fileinput.input('C1input',inplace=1):
-                print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
-            submit_batch = ['sbatch']+batch_options[task]
-            submit_batch += ['--job-name=m3dc1_il']+['batch_slurm']
-            write_command(submit_batch)
-            call(submit_batch)
+            for coil in ['iu','il']:
                 
+                base_folder = rot+'1_'+nflu+'f_'+coil
+                resp_folder = def_folder(rot,nflu+'f_'+coil)
+                sh.copytree(template+'n=/'+base_folder,resp_folder)
+                load_equil('../'+adapt_folder,resp_folder)
+                mysh.cp('../'+adapt_folder+'/adapted0.smb', 
+                        resp_folder+'/adapted0.smb')
+                os.chdir(resp_folder)
+                mod_C1input(C1inputs)
+                for line in fileinput.input('C1input',inplace=1):
+                    print re.sub(r'ntor = ','ntor = '+ntor,line.rstrip('\n'))
+                job_name = 'm3dc1_'+coil
+                submit_batch = ['sbatch']+batch_options[task]
+                submit_batch += ['--job-name='+job_name]+['batch_slurm']
+                write_command(submit_batch)
+                call(submit_batch)
+            
+                os.chdir('..')
+                print  '>>> Job ' + job_name + ' submitted'
+            
             print
-            print  '>>> Jobs m3dc1_iu and m3dc1_il submitted'
+            
             if interactive:            
                 print  '>>> You can do other calculations in the meantime'
                 raw_input('>>> Press <ENTER> twice to start another calculation')
                 raw_input('>>> Press <ENTER> again to proceed')
                 
-            os.chdir('../..')
+            os.chdir('..')
             print
             print
             
@@ -733,3 +728,19 @@ def write_command(submit_batch):
         h.write(' '.join(submit_batch))
     
     return
+
+def def_folder(pre,post):
+    
+    i = 1
+    
+    while True:
+        
+        folder = pre+str(i)+'_'+post
+
+        if os.path.isdir(folder):
+            i += 1
+        else:
+            break
+        
+    return folder
+    
