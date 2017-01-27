@@ -12,10 +12,8 @@ Date edited:
 import os
 import sys
 import shutil as sh
-import fileinput
 from subprocess import call, check_output, Popen
 from time import sleep
-import re
 import matplotlib.pyplot as plt
 
 import my_shutil as mysh
@@ -25,10 +23,11 @@ from move_iter import move_iter
 from mod_C1input import mod_C1input
 from extract_profiles import extract_profiles
 
-def autoC1(task='all',machine='DIII-D',C1input_mod=None,
-           calcs=[(0,0,0)], interactive=True, OMFIT=False,
+def autoC1(task='all',machine='DIII-D',calcs=[(0,0,0)],
+           interactive=True, OMFIT=False,
            setup_folder='efit',uni_equil_folder='uni_equil',
-           adapt_folder='rw1_adapt'):
+           adapt_folder='rw1_adapt',
+           C1input_mod=None,C1input_base='C1input_base'):
     
     if task == 'all':
         task = 'setup'
@@ -139,8 +138,15 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
         
     # Setup C1input
     
-    C1input_base = template+'C1input_base'
+    if not os.path.exists(C1input_base):
+        mysh.cp(template+'/C1input_base',C1input_base)
 
+    ireq = {'DIII-D':'3',
+            'NSTX-U':'3',
+            'AUG':'1'}
+    mf   = {'DIII-D':"'diiid0.02.smb'",
+            'NSTX-U':"'nstxu0.02.smb'",
+            'AUG':"'aug0.02.smb'"}
     C1input_options = {'efit':{'ntimemax':'0',
                                'ntimepr':'1',
                                'iread_eqdsk':'1',
@@ -157,7 +163,7 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
                                'ntor':'0'},
                        'uni_equil':{'ntimemax':'0',
                                     'ntimepr':'1',
-                                    'iread_eqdsk':'3',
+                                    'iread_eqdsk':ireq[machine],
                                     'irmp':'0',
                                     'extsubtract':'0',
                                     'max_ke':'0',
@@ -170,7 +176,7 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
                                     'ntor':'0'},
                        'adapt':{'ntimemax':'0',
                                 'ntimepr':'1',
-                                'iread_eqdsk':'3',
+                                'iread_eqdsk':ireq[machine],
                                 'irmp':'0',
                                 'extsubtract':'0',
                                 'iadapt':'1',
@@ -180,12 +186,12 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
                                 'idevice':'-1',
                                 'eps':'0',
                                 'db_fac':'0.0',
-                                'mesh_filename':"'diiid0.02.smb'",
+                                'mesh_filename':mf[machine],
                                 'icsubtract':'1',
                                 'ntor':'0'},
                        'equilibrium':{'ntimemax':'0',
                                       'ntimepr':'1',
-                                      'iread_eqdsk':'3',
+                                      'iread_eqdsk':ireq[machine],
                                       'irmp':'0',
                                       'extsubtract':'0',
                                       'max_ke':'0',
@@ -196,7 +202,7 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
                                       'mesh_filename':"'part.smb'",
                                       'icsubtract':'1',
                                       'ntor':'0'},
-                       'stability':{'iread_eqdsk':'3',
+                       'stability':{'iread_eqdsk':ireq[machine],
                                     'irmp':'0',
                                     'extsubtract':'0',
                                     'max_ke':'1',
@@ -207,7 +213,7 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
                                     'icsubtract':'1'},
                        'response':{'ntimemax':'1',
                                    'ntimepr':'1',
-                                   'iread_eqdsk':'3',
+                                   'iread_eqdsk':ireq[machine],
                                    'irmp':'1',
                                    'extsubtract':'1',
                                    'max_ke':'0',
@@ -638,7 +644,7 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
             sh.copytree(template+'n=/'+base_folder,stab_folder)
         
             load_equil('../'+adapt_folder,stab_folder)
-            mysh.cp(C1input_base,stab_folder+'/C1input')
+            mysh.cp('../'+C1input_base,stab_folder+'/C1input')
             mysh.cp('../'+adapt_folder+'/adapted0.smb',
                     stab_folder+'/adapted0.smb')
             os.chdir(stab_folder)
@@ -647,7 +653,7 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
             C1input_stab.update({'ntor':ntor})
             if nflu == '1':
                 C1input_stab.update({'db_fac':'0.0'})
-            else if nflu == '2':
+            elif nflu == '2':
                 C1input_stab.update({'db_fac':'1.0'})
             if C1input_mod is not None:
                 C1input_stab.update(C1input_mod)
@@ -708,7 +714,7 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
             C1input_resp.update({'ntor':ntor})
             if nflu == '1':
                 C1input_resp.update({'db_fac':'0.0'})
-            else if nflu == '2':
+            elif nflu == '2':
                 C1input_resp.update({'db_fac':'1.0'})
             if C1input_mod is not None:
                 C1input_resp.update(C1input_mod)
@@ -720,7 +726,7 @@ def autoC1(task='all',machine='DIII-D',C1input_mod=None,
                 sh.copytree(template+'n=/'+base_folder,resp_folder)
                 
                 load_equil('../'+adapt_folder,resp_folder)
-                mysh.cp(C1input_base,resp_folder+'/C1input')
+                mysh.cp('../'+C1input_base,resp_folder+'/C1input')
                 mysh.cp('../'+adapt_folder+'/adapted0.smb', 
                         resp_folder+'/adapted0.smb')
                 os.chdir(resp_folder)

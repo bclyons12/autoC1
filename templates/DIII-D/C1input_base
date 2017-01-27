@@ -2,8 +2,13 @@
 
 ! I/O Options
 ! ===========
-	ntimemax = 	! number of time steps
-	ntimepr = 	! number of time steps per output
+
+	! number of time steps
+	ntimemax = 100
+
+	! number of time steps per output
+	ntimepr = 100	
+
 	iprint = 0	! 1 = print detailed debug info
 	itimer = 0	! 1 = print timing info
 
@@ -18,20 +23,22 @@
 
 	irmp = 
 	extsubtract = 
-
+	frequency = 0.0
 
 
 
 ! Numerical Method Options
 ! ========================
-	dt = 1.		! time step
+
+	! time step
+	dt = 1.0
 
 	integrator = 0	! 0 = Crank-Nicholson, 1 = BDF2
 	thimp = 0.6	! implicitness parameter for CN
 	imp_mod = 0
 	isplitstep = 0
 
-	deex = 1.
+	deex = 1.0
 	hyper  = 0.0	! hyper-resistivity (applied to psi)
 	hyperi = 0.0	! hyper-resistivity (applied to Bz )
 	hyperv = 0.0	! hyper-viscosity   (applied to vz )
@@ -74,8 +81,8 @@
 
 	inertia = 1
 
-	ion_mass = 2.
-	zeff = 1.
+	ion_mass = 2.0
+	zeff = 1.0
 
 
 ! Equilibrium Options
@@ -86,7 +93,9 @@
 			! 2: Force-free Taylor state
 			! 3: GEM-reconnection
 			! 4: Wave propagation
-	idevice = 	! when itor=1 and itaylor=1
+
+	! when itor=1 and itaylor=1
+	idevice = 
 			! 0: vertical field
 			! 1: CDX-U
 			! 2: NSTX
@@ -95,13 +104,15 @@
 
 	bzero = 1.9	! toroidal field strength
 	rzero = 1.7
-	p0 = 1.		! total pressure
+	p0 = 1.0		! total pressure
 	pi0 = 0.5	! ion pressure
 
 	eps = 
 
 	irot = -1
+	iread_omega     = 0
 	iread_omega_ExB = 1
+	iread_omega_e   = 0
 
 	iread_ne = 1
 	iread_te = 1
@@ -109,25 +120,34 @@
 
 ! Transport Parameters
 ! ====================
-	eta_wall = 1.
-	eta_vac = 1.
+	eta_wall = 1.0
+	eta_vac = 1.0
 	iresfunc = 4
 	eta0 = 1e-4
 	etar = 1e-8	! resistivity = etar + eta0/T^(3/2)
-      	amu = 1e-6	! kinematic viscosity 
-	amuc = 0.
-	amupar = 0.
-	denm = 1e-6	! density diffusion
-	kappat = 1e-6	! isotropic thermal conductivity
-	kappa0 = 0.	!  kappa = kappat + kappa0*p/T^(3/2)
-	kappar = 1.	! field-aligned thermal conductivity
+
+	! kinematic viscosity 
+      	amu = 1e-6
+
+	amuc = 0.0
+	amupar = 0.0
+
+	! density diffusion
+	denm = 1e-6
+
+	! isotropic thermal conductivity
+	kappat = 1e-6
+	
+	kappa0 = 0.0	!  kappa = kappat + kappa0*p/T^(3/2)
+	kappar = 1.0	! field-aligned thermal conductivity
 	ikapscale = 0
 
 	gam = 1.66666666666667	! adiabatic constant
 	
 	! ion skin depth
 	db_fac = 
-
+			! 0.0 = single-fluid
+			! 1.0 = two-fluid
 
 ! Boundary Conditions
 ! ===================
@@ -135,18 +155,6 @@
         jper = 0	! 1 = periodic in z
 
 	nonrect = 1
-
-!	inoslip_pol = 1
-!	inoslip_tor = 1
-!	inonormalflow = 1
-!	inocurrent_norm = 0
-!	inocurrent_tor = 0
-!	inocurrent_pol = 1
-!	iconst_bz = 0
-!	iconst_bn = 1
-!
-!	iconst_n = 1
-!	iconst_p = 1
 
 	mesh_filename = 
 	mesh_model = 'diiid0.02.txt'
@@ -157,20 +165,29 @@
 ! Grad-Shafranov Options
 ! ======================
 	xlim = 1.018	! limiting value of x
-	zlim = 0.	! limiting value of z
+	zlim = 0.0	! limiting value of z
 	xlim2 = 2.365	! limiting value of x
-	zlim2 = 0.	! limiting value of z
+	zlim2 = 0.0	! limiting value of z
 	xmag = 1.71	! x-coordinate of magnetic axis
 	zmag =  -0.05	! z-coordinate of magnetic axis
 	tcuro = 0.7	! initial toroidal current
+	
+
+	! number of grad-shafranov iterations
+	igs = 100
+	
+	! implicitness of GS Picard iterations
 	th_gs = 0.8
-	igs = 100		! number of grad-shafranov iterations
-	djdpsi = 0.
+
+	djdpsi = 0.0
 	q0 = 0.9	! saftey factor near the magnetic axis
 	p1 = 0
 	p2 = 0
+
+	! Minimum edge ion temperature
 	tiedge = 5e-4
-	expn = 0.
+
+	expn = 0.0
 	divertors = 0
 	xnull = 1.27282
 	znull = -1.16212
@@ -180,31 +197,45 @@
 
 	igs_extend_p = 1
 
-	gs_vertical_feedback(9)  = -1000.
-	gs_vertical_feedback(10) =  1000.
-	gs_vertical_feedback(11) = -1000.
-	gs_vertical_feedback(12) =  1000.
-	gs_vertical_feedback(13) = -1000.
-	gs_vertical_feedback(14) =  1000.
-	gs_radial_feedback(15) = -1000.
-	gs_radial_feedback(16) = -1000.
-	gs_radial_feedback(17) = -1000.
-	gs_radial_feedback(18) = -1000.
+	gs_vertical_feedback(9)  = -1000.0
+	gs_vertical_feedback(10) =  1000.0
+	gs_vertical_feedback(11) = -1000.0
+	gs_vertical_feedback(12) =  1000.0
+	gs_vertical_feedback(13) = -1000.0
+	gs_vertical_feedback(14) =  1000.0
+	gs_radial_feedback(15) = -1000.0
+	gs_radial_feedback(16) = -1000.0
+	gs_radial_feedback(17) = -1000.0
+	gs_radial_feedback(18) = -1000.0
 
-	gs_vertical_feedback_i(9)  = -500.
-	gs_vertical_feedback_i(10) =  500.
-	gs_vertical_feedback_i(11) = -500.
-	gs_vertical_feedback_i(12) =  500.
-	gs_vertical_feedback_i(13) = -500.
-	gs_vertical_feedback_i(14) =  500.
-	gs_radial_feedback_i(15) = -500.
-	gs_radial_feedback_i(16) = -500.
-	gs_radial_feedback_i(17) = -500.
-	gs_radial_feedback_i(18) = -500.
+	gs_vertical_feedback_i(9)  = -500.0
+	gs_vertical_feedback_i(10) =  500.0
+	gs_vertical_feedback_i(11) = -500.0
+	gs_vertical_feedback_i(12) =  500.0
+	gs_vertical_feedback_i(13) = -500.0
+	gs_vertical_feedback_i(14) =  500.0
+	gs_radial_feedback_i(15) = -500.0
+	gs_radial_feedback_i(16) = -500.0
+	gs_radial_feedback_i(17) = -500.0
+	gs_radial_feedback_i(18) = -500.0
 
+	! toroidal mode number for linear simulations
 	ntor = 
+
+	! magnetic probes
+	imag_probes=2
+	mag_probe_x(1) = 3
+	mag_probe_phi(1) = 0
+	mag_probe_z(1) = 0
+	mag_probe_nz(1) = 1
+
+	mag_probe_x(2) = 2
+	mag_probe_phi(2) = 90
+	mag_probe_z(2) = 2
+	mag_probe_nx(1) = 1
+
 
 	b0_norm = 1.e4
 	n0_norm = 1e14
-	l0_norm = 100.
+	l0_norm = 100.0
  /
