@@ -639,7 +639,7 @@ def autoC1(task='all',machine='DIII-D',calcs=[(0,0,0)],
                 os.mkdir(ndir)
             os.chdir(ndir)
             
-            base_folder = rot+'1_'+nflu+'f_stab'
+            base_folder = rot+'1_stab'
             stab_folder = def_folder(rot,nflu+'f_stab')
             sh.copytree(template+'n=/'+base_folder,stab_folder)
         
@@ -721,7 +721,7 @@ def autoC1(task='all',machine='DIII-D',calcs=[(0,0,0)],
             
             for coil in ['iu','il']:
                 
-                base_folder = rot+'1_'+nflu+'f_'+coil
+                base_folder = rot+'1_'+coil
                 resp_folder = def_folder(rot,nflu+'f_'+coil)
                 sh.copytree(template+'n=/'+base_folder,resp_folder)
                 
