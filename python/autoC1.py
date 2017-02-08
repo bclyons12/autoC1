@@ -46,9 +46,9 @@ def autoC1(task='all',machine='DIII-D',calcs=[(0,0,0)],
     else:
         rot = 'eb'
 
-    C1arch = os.environ.get('M3DC1_ARCH')
+    C1arch = os.environ.get('AUTOC1_ARCH')
 
-    if C1arch == 'sunfire.r6':
+    if C1arch == 'sunfire':
 
         part_small = 'kruskal'
         part_large = 'mque'
@@ -132,7 +132,7 @@ def autoC1(task='all',machine='DIII-D',calcs=[(0,0,0)],
                                      '--mem=120000']}
         
     else:
-        print 'Error: autoC1 does not support M3DC1_ARCH = '+C1arch
+        print 'Error: autoC1 does not support AUTOC1_ARCH = '+C1arch
         return 
 
         
