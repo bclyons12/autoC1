@@ -116,20 +116,20 @@ def autoC1(task='all',machine='DIII-D',calcs=[(0,0,0)],
                          'equilibrium':['--partition='+part_large,
                                         '--nodes=1',
                                         '--ntasks=16',
-                                        '--time=1:00:00',
-                                        '--mem=120000',
+                                        '--time=2:00:00',
+                                        '--mem=128000',
                                         '--job-name=m3dc1_equil'],
                          'stability':['--partition='+part_large,
                                       '--nodes=1',
                                       '--ntasks=16',
                                       '--time=24:00:00',
-                                      '--mem=120000',
+                                      '--mem=128000',
                                       '--job-name=m3dc1_stab'],
                          'response':['--partition='+part_large,
                                      '--nodes=1',
                                      '--ntasks=16',
                                      '--time=8:00:00',
-                                     '--mem=120000']}
+                                     '--mem=128000']}
         
     else:
         print 'Error: autoC1 does not support AUTOC1_ARCH = '+C1arch
