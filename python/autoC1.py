@@ -23,11 +23,11 @@ from move_iter import move_iter
 from mod_C1input import mod_C1input
 from extract_profiles import extract_profiles
 
-def autoC1(task='all',machine='DIII-D',calcs=[(0,0,0)],
+def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
            interactive=True, OMFIT=False,
-           setup_folder='efit',uni_equil_folder='uni_equil',
-           adapt_folder='rw1_adapt',
-           C1input_mod=None,C1input_base='C1input_base'):
+           setup_folder='efit', uni_equil_folder='uni_equil',
+           adapt_folder='rw1_adapt', adapted_mesh=None,
+           C1input_mod=None, C1input_base='C1input_base'):
     
     if task == 'all':
         task = 'setup'
@@ -471,35 +471,42 @@ def autoC1(task='all',machine='DIII-D',calcs=[(0,0,0)],
         sh.copytree(template+'rw1_adapt/',adapt_folder)
         
         load_equil(setup_folder,adapt_folder)
-        mysh.cp(C1input_base,adapt_folder+'/C1input')
         mysh.cp(uni_equil_folder+'/current.dat.good',
                 adapt_folder+'/current.dat')
-        os.chdir(adapt_folder)
-        
-        
-        C1input_adapt = dict(C1input_options[task])
-        if C1input_mod is not None:
-            C1input_adapt.update(C1input_mod)
-        mod_C1input(C1input_adapt)
-        
-        submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
-        write_command(submit_batch)
-        call(submit_batch)
-        print
-        
-        print  '>>> Wait for adapted0.smb to be created'
-        while not os.path.exists('adapted0.smb'):
-            sleep(10)
-        
-        print  '>>> Mesh adaptation complete'
 
-        with open('job_id.txt','r') as f:
-            jobid = f.read().rstrip('\n')
-        print  '>>> Killing m3dc1_adapt job #'+jobid
-        call(['scancel',jobid])
+        if adapted_mesh is None:
+            # Perform mesh adaptation
+            mysh.cp(C1input_base,adapt_folder+'/C1input')
+            os.chdir(adapt_folder)
+        
+            C1input_adapt = dict(C1input_options[task])
+            if C1input_mod is not None:
+                C1input_adapt.update(C1input_mod)
+            mod_C1input(C1input_adapt)
+        
+            submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+            write_command(submit_batch)
+            call(submit_batch)
+            print
+            
+            print  '>>> Wait for adapted0.smb to be created'
+            while not os.path.exists('adapted0.smb'):
+                sleep(10)
+        
+            print  '>>> Mesh adaptation complete'
+
+            with open('job_id.txt','r') as f:
+                jobid = f.read().rstrip('\n')
+            print  '>>> Killing m3dc1_adapt job #'+jobid
+            call(['scancel',jobid])
     
-        os.chdir('..')
-    
+            os.chdir('..')
+
+        else:
+            mysh.cp(adapted_mesh,adapt_folder+'/adapted0.smb')
+            print
+            print  '>>> Using provided adapted mesh'
+
         task = 'calculation'
         
         print
