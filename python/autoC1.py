@@ -50,7 +50,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
 
     if C1arch == 'sunfire':
 
-        part_small = 'kruskal'
+        part_small = 'kruskal,dawson,mque,ellis'
         part_large = 'mque'
         
         batch_options = {'efit':['--partition='+part_small,
