@@ -44,7 +44,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     elif machine is 'AUG':
         rot = 'eb'
     elif machine is 'KSTAR':
-        rot = 'eb'
+        rot = 'vt'
     else:
         rot = 'eb'
 

@@ -110,8 +110,8 @@
 	eps = 
 
 	irot = -1
-	iread_omega     = 0
-	iread_omega_ExB = 1
+	iread_omega     = 3
+	iread_omega_ExB = 0
 	iread_omega_e   = 0
 
 	iread_ne = 1
