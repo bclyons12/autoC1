@@ -17,7 +17,7 @@ from scipy.interpolate import interp1d
 
 def extract_profiles(machine='DIII-D',profile='all'):
     
-    if machine in ['DIII-D','NSTX-U']:
+    if machine in ['DIII-D','NSTX-U','KSTAR']:
     
         profile = 'all'
         print 'Extracting all profiles from single file'
