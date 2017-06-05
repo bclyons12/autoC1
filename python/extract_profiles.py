@@ -17,7 +17,7 @@ from scipy.interpolate import interp1d
 
 def extract_profiles(machine='DIII-D',profile='all'):
     
-    if machine in ['DIII-D','NSTX-U','KSTAR']:
+    if machine in ['DIII-D','NSTX-U']:
     
         profile = 'all'
         print 'Extracting all profiles from single file'
@@ -111,6 +111,41 @@ def extract_profiles(machine='DIII-D',profile='all'):
                 np.savetxt('profile_omega.ExB',omgeb,fmt='%.6e',delimiter='   ')
                 os.remove(prof)
                 mysh.cp(r'profile_omega.ExB','profile_omega')
+
+
+    elif machine in ['AUG']:
+        
+        print 'Extracting profile '+profile
+        
+        if profile in ['all','ne','NE']:
+            if len(glob(r'NE_*.dat')) != 0:
+                mysh.cp(r'NE_*.dat','NE_0.dat')
+                prof = 'NE_0.dat'
+                ne = np.loadtxt('NE_0.dat',skiprows=2,usecols=(1,2))
+                ne[:,1] = ne[:,1]*1e-1
+                ne = ne[ne[:,0]<=1.0]
+                np.savetxt('profile_ne',ne,fmt='%.6e',delimiter='   ')
+                os.remove(prof)
+        
+        if profile in ['all','te','Te','TE']:
+            if len(glob(r'TE_*.dat')) != 0:
+                mysh.cp(r'TE_*.dat','TE_0.dat')
+                prof = 'TE_0.dat'
+                Te = np.loadtxt('TE_0.dat',skiprows=2,usecols=(1,2))
+                Te = Te[Te[:,0]<=1.0]
+                np.savetxt('profile_te',Te,fmt='%.6e',delimiter='   ')
+                os.remove(prof)
+            
+        if profile in ['all','vt','vtor','VT']:
+            if len(glob(r'VT_*.dat')) != 0:
+                mysh.cp(r'VT_*.dat','VT_0.dat')
+                prof = 'VT_0.dat'
+                vt = np.loadtxt('VT_0.dat',skiprows=2,usecols=(1,2))
+                vt[:,1] = vt[:,1]*1e3
+                vt = vt[vt[:,0]<=1.0]
+                np.savetxt('profile_vphi',vt,fmt='%.6e',delimiter='   ')
+                os.remove(prof)
+        
     return
         
         
