@@ -242,13 +242,18 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             mysh.cp(r'g*.*','geqdsk')
             extract_profiles(machine=machine)
 
+
+        a2cc = {'DIII-D':'a2cc',
+                'NSTX-U':'a2cc',
+                'KSTAR':'/p/tsc/nferraro/src/svn_local/trunk/unstructured/_sunfire.openmpi-1.8.4/a2cc'}
         if machine in ['DIII-D','NSTX-U','KSTAR']:
 
             fc = open('current.dat','w')
             mysh.cp(r'a*.*','a0.0')
-            call(['a2cc', 'a0.0'], stdout=fc)
+            call([a2cc[machine], 'a0.0'], stdout=fc)
             fc.close()
             os.remove('a0.0')
+        
             
         if interactive:
             next = '-'
