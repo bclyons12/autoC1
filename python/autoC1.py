@@ -43,6 +43,8 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
         rot = 'eb'
     elif machine is 'AUG':
         rot = 'eb'
+    elif machine is 'KSTAR':
+        rot = 'vt'
     else:
         rot = 'eb'
 
@@ -143,10 +145,12 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
 
     iread_eqdsks = {'DIII-D':'3',
                    'NSTX-U':'3',
-                   'AUG':'1'}
+                   'AUG':'1',
+                   'KSTAR':'3'}
     mesh_filenames   = {'DIII-D':"'diiid0.02.smb'",
                         'NSTX-U':"'nstxu0.02.smb'",
-                        'AUG':"'aug0.02.smb'"}
+                        'AUG':"'aug0.02.smb'",
+                        'KSTAR':"'kstar-0.02-2.20-3.60-7K.smb'"}
 
     C1input_options = {'efit':{'ntimemax':'0',
                                'ntimepr':'1',
@@ -238,13 +242,18 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             mysh.cp(r'g*.*','geqdsk')
             extract_profiles(machine=machine)
 
-        if machine in ['DIII-D','NSTX-U']:
+
+        a2cc = {'DIII-D':'a2cc',
+                'NSTX-U':'a2cc',
+                'KSTAR':'/p/tsc/nferraro/src/svn_local/trunk/unstructured/_sunfire.openmpi-1.8.4/a2cc'}
+        if machine in ['DIII-D','NSTX-U','KSTAR']:
 
             fc = open('current.dat','w')
             mysh.cp(r'a*.*','a0.0')
-            call(['a2cc', 'a0.0'], stdout=fc)
+            call([a2cc[machine], 'a0.0'], stdout=fc)
             fc.close()
             os.remove('a0.0')
+        
             
         if interactive:
             next = '-'
