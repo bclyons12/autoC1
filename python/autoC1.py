@@ -52,7 +52,8 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
 
         part_small = 'kruskal,dawson,mque,ellis'
         part_large = 'mque'
-        
+        batch_file = 'batch_slurm'
+
         batch_options = {'efit':['--partition='+part_small,
                                  '--nodes=1',
                                  '--ntasks=16',
@@ -94,6 +95,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
         
         part_small = 'short'
         part_large = 'medium'
+        batch_file = 'batch_slurm'
         
         batch_options = {'efit':['--partition='+part_small,
                                  '--nodes=1',
@@ -130,6 +132,54 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                      '--ntasks=16',
                                      '--time=8:00:00',
                                      '--mem=128000']}
+        
+    elif C1arch == 'edison':
+        
+        part_small = 'debug'
+        part_adapt = 'shared'
+        part_large = 'regular, --qos=normal'
+        batch_file = 'batch_edison'
+        
+        batch_options = {'efit':['--partition='+part_small,
+                                 '--constraint=haswell',
+                                 '--nodes=1',
+                                 '--ntasks=32',
+                                 '--time=0:10:00',
+                                 '--mem=120000',
+                                 '--job-name=m3dc1_efit'],
+                         'uni_equil':['--partition='+part_small,
+                                      '--constraint=haswell',
+                                      '--nodes=1',
+                                      '--ntasks=32',
+                                      '--time=0:10:00',
+                                      '--mem=120000',
+                                      '--job-name=m3dc1_eq'],
+                         'adapt':['--partition='+part_adapt,
+                                  '--constraint=haswell',
+                                  '--ntasks=1',
+                                  '--time=4:00:00',
+                                  '--mem=60000',
+                                  '--job-name=m3dc1_adapt'],
+                         'equilibrium':['--partition='+part_small,
+                                        '--constraint=haswell',
+                                        '--nodes=4',
+                                        '--ntasks=128',
+                                        '--time=0:30:00',
+                                        '--mem=240000',
+                                        '--job-name=m3dc1_equil'],
+                         'stability':['--partition='+part_large,
+                                      '--constraint=haswell',
+                                      '--nodes=4',
+                                      '--ntasks=128',
+                                      '--time=4:00:00',
+                                      '--mem=240000',
+                                      '--job-name=m3dc1_stab'],
+                         'response':['--partition='+part_small,
+                                     '--constraint=haswell',
+                                     '--nodes=4',
+                                     '--ntasks=128',
+                                     '--time=0:30:00',
+                                     '--mem=240000']}
         
     else:
         print 'Error: autoC1 does not support AUTOC1_ARCH = '+C1arch
@@ -305,7 +355,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             C1input_efit.update(C1input_mod)
         mod_C1input(C1input_efit)
         
-        submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+        submit_batch = ['sbatch']+batch_options[task]+[batch_file]
         write_command(submit_batch)
         call(submit_batch)
         print
@@ -349,7 +399,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             C1input_uni_equil.update(C1input_mod)
         mod_C1input(C1input_uni_equil)
         
-        submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+        submit_batch = ['sbatch']+batch_options[task]+[batch_file]
         
         if interactive:
             while True:
@@ -484,7 +534,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_adapt.update(C1input_mod)
             mod_C1input(C1input_adapt)
         
-            submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+            submit_batch = ['sbatch']+batch_options[task]+[batch_file]
             write_command(submit_batch)
             call(submit_batch)
             print
@@ -595,7 +645,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_equil.update(C1input_mod)
             mod_C1input(C1input_equil)
         
-            submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+            submit_batch = ['sbatch']+batch_options[task]+[batch_file]
             write_command(submit_batch)
             call(submit_batch)
             print
@@ -667,7 +717,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_stab.update(C1input_mod)
             mod_C1input(C1input_stab)
             
-            submit_batch = ['sbatch']+batch_options[task]+['batch_slurm']
+            submit_batch = ['sbatch']+batch_options[task]+[batch_file]
             write_command(submit_batch)
             call(submit_batch)
             print
@@ -743,7 +793,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 
                 job_name = 'm3dc1_'+coil
                 submit_batch = ['sbatch']+batch_options[task]
-                submit_batch += ['--job-name='+job_name]+['batch_slurm']
+                submit_batch += ['--job-name='+job_name]+[batch_file]
                 write_command(submit_batch)
                 call(submit_batch)
             
