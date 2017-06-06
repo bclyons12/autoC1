@@ -1,0 +1,7 @@
+#!/bin/bash -vx
+
+echo $SLURM_JOB_ID > job_id.txt
+
+# Run M3D-C1
+/bin/rm -f C1stdout
+mpiexec --bind-to none -np 1 m3dc1_2d >& C1stdout

@@ -20,6 +20,7 @@ def copy_run(src,dst):
     cp(src+'/profile_ne',dst+'/profile_ne')
     cp(src+'/profile_te',dst+'/profile_te')
     cp(src+'/profile_omega',dst+'/profile_omega')
+    cp(src+'/profile_vphi',dst+'/profile_vphi')
     cp(src+'/rmp_coil.dat',dst+'/rmp_coil.dat')
     cp(src+'/rmp_current.dat',dst+'/rmp_current.dat')
     cp(src+'/sizefieldParam',dst+'/sizefieldParam')
