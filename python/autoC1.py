@@ -11,7 +11,6 @@ Date edited:
 
 import os
 import sys
-import shutil as sh
 from subprocess import call, check_output, Popen
 from time import sleep
 import matplotlib.pyplot as plt
@@ -22,12 +21,13 @@ from load_equil import load_equil
 from move_iter import move_iter
 from mod_C1input import mod_C1input
 from extract_profiles import extract_profiles
+from sedpy import sedpy
 
 def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
            interactive=True, OMFIT=False,
            setup_folder='efit', uni_equil_folder='uni_equil',
            adapt_folder='rw1_adapt', adapted_mesh=None,
-           C1input_mod=None, C1input_base='C1input_base'):
+           C1input_mod=None, C1input_base='C1input_base',rot='eb'):
     
     if task == 'all':
         task = 'setup'
@@ -37,171 +37,38 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
 
     template = os.environ.get('AUTOC1_HOME')+'/templates/'+ machine + '/'
     
-    if machine is 'DIII-D':
-        rot = 'eb'
-    elif machine is 'NSTX-U':
-        rot = 'eb'
-    elif machine is 'AUG':
-        rot = 'eb'
-    elif machine is 'KSTAR':
-        rot = 'vt'
-    else:
-        rot = 'eb'
 
     C1arch = os.environ.get('AUTOC1_ARCH')
 
-    if C1arch == 'sunfire':
 
-        part_small = 'kruskal,dawson,mque,ellis'
-        part_large = 'mque'
-        batch_file = 'batch_slurm'
-
-        batch_options = {'efit':['--partition='+part_small,
-                                 '--nodes=1',
-                                 '--ntasks=16',
-                                 '--time=0:10:00',
-                                 '--mem=32000',
-                                 '--job-name=m3dc1_efit'],
-                         'uni_equil':['--partition='+part_small,
-                                      '--nodes=1',
-                                      '--ntasks=16',
-                                      '--time=0:10:00',
-                                      '--mem=32000',
-                                      '--job-name=m3dc1_eq'],
-                         'adapt':['--partition='+part_large,
-                                  '--nodes=1',
-                                  '--ntasks=1',
-                                  '--time=4:00:00',
-                                  '--mem=60000',
-                                  '--job-name=m3dc1_adapt'],
-                         'equilibrium':['--partition='+part_large,
-                                        '--nodes=1',
-                                        '--ntasks=16',
-                                        '--time=1:00:00',
-                                        '--mem=120000',
-                                        '--job-name=m3dc1_equil'],
-                         'stability':['--partition='+part_large,
-                                      '--nodes=1',
-                                      '--ntasks=32',
-                                      '--time=12:00:00',
-                                      '--mem=256000',
-                                      '--job-name=m3dc1_stab'],
-                         'response':['--partition='+part_large,
-                                     '--nodes=1',
-                                     '--ntasks=32',
-                                     '--time=4:00:00',
-                                     '--mem=256000']}
-        
-        
-    elif C1arch == 'saturn':
-        
-        part_small = 'short'
-        part_large = 'medium'
-        batch_file = 'batch_slurm'
-        
-        batch_options = {'efit':['--partition='+part_small,
-                                 '--nodes=1',
-                                 '--ntasks=16',
-                                 '--time=0:10:00',
-                                 '--mem=32000',
-                                 '--job-name=m3dc1_efit'],
-                         'uni_equil':['--partition='+part_small,
-                                      '--nodes=1',
-                                      '--ntasks=16',
-                                      '--time=0:10:00',
-                                      '--mem=32000',
-                                      '--job-name=m3dc1_eq'],
-                         'adapt':['--partition='+part_large,
-                                  '--nodes=1',
-                                  '--ntasks=8',
-                                  '--time=4:00:00',
-                                  '--mem=60000',
-                                  '--job-name=m3dc1_adapt'],
-                         'equilibrium':['--partition='+part_large,
-                                        '--nodes=1',
-                                        '--ntasks=16',
-                                        '--time=2:00:00',
-                                        '--mem=128000',
-                                        '--job-name=m3dc1_equil'],
-                         'stability':['--partition='+part_large,
-                                      '--nodes=1',
-                                      '--ntasks=16',
-                                      '--time=24:00:00',
-                                      '--mem=128000',
-                                      '--job-name=m3dc1_stab'],
-                         'response':['--partition='+part_large,
-                                     '--nodes=1',
-                                     '--ntasks=16',
-                                     '--time=8:00:00',
-                                     '--mem=128000']}
-        
-    elif C1arch == 'edison':
-        
-        part_small = 'debug'
-        part_adapt = 'shared'
-        part_large = 'regular, --qos=normal'
-        batch_file = 'batch_edison'
-        
-        batch_options = {'efit':['--partition='+part_small,
-                                 '--constraint=haswell',
-                                 '--nodes=1',
-                                 '--ntasks=32',
-                                 '--time=0:10:00',
-                                 '--mem=120000',
-                                 '--job-name=m3dc1_efit'],
-                         'uni_equil':['--partition='+part_small,
-                                      '--constraint=haswell',
-                                      '--nodes=1',
-                                      '--ntasks=32',
-                                      '--time=0:10:00',
-                                      '--mem=120000',
-                                      '--job-name=m3dc1_eq'],
-                         'adapt':['--partition='+part_adapt,
-                                  '--constraint=haswell',
-                                  '--ntasks=1',
-                                  '--time=4:00:00',
-                                  '--mem=60000',
-                                  '--job-name=m3dc1_adapt'],
-                         'equilibrium':['--partition='+part_small,
-                                        '--constraint=haswell',
-                                        '--nodes=4',
-                                        '--ntasks=128',
-                                        '--time=0:30:00',
-                                        '--mem=240000',
-                                        '--job-name=m3dc1_equil'],
-                         'stability':['--partition='+part_large,
-                                      '--constraint=haswell',
-                                      '--nodes=4',
-                                      '--ntasks=128',
-                                      '--time=4:00:00',
-                                      '--mem=240000',
-                                      '--job-name=m3dc1_stab'],
-                         'response':['--partition='+part_small,
-                                     '--constraint=haswell',
-                                     '--nodes=4',
-                                     '--ntasks=128',
-                                     '--time=0:30:00',
-                                     '--mem=240000']}
-        
-    else:
-        print 'Error: autoC1 does not support AUTOC1_ARCH = '+C1arch
-        return 
-
-        
     # Setup C1input
     
     if not os.path.exists(C1input_base):
         mysh.cp(template+'/C1input_base',C1input_base)
 
     iread_eqdsks = {'DIII-D':'3',
-                   'NSTX-U':'3',
-                   'AUG':'1',
-                   'KSTAR':'3'}
-    mesh_filenames   = {'DIII-D':"'diiid0.02.smb'",
-                        'NSTX-U':"'nstxu0.02.smb'",
-                        'AUG':"'aug0.02.smb'",
-                        'KSTAR':"'kstar-0.02-2.20-3.60-7K.smb'"}
-
+                    'NSTX-U':'3',
+                    'AUG':'1',
+                    'KSTAR':'3'}
+    
+    uni_smb  = {'DIII-D':'diiid0.02.smb',
+                'NSTX-U':'nstxu0.02.smb',
+                'AUG':   'aug0.02.smb',
+                'KSTAR': 'kstar-0.02-2.20-3.60-7K.smb'}
+    uni0_smb = {'DIII-D':'diiid0.020.smb',
+               'NSTX-U':'nstxu0.020.smb',
+               'AUG':   'aug0.020.smb',
+               'KSTAR': 'kstar-0.02-2.20-3.60-7K0.smb'}
+    uni_txt = {'DIII-D':'diiid0.02.txt',
+               'NSTX-U':'nstxu0.02.txt',
+               'AUG':   'aug0.02.txt',
+               'KSTAR': 'kstar-0.02-2.20-3.60.txt'}
+    
+    coils = {'DIII-D':['iu','il'],
+             'NSTX-U':['iu','il'],
+             'AUG':   ['iu','il'],
+             'KSTAR': ['iu','il']}
+    
     C1input_options = {'efit':{'ntimemax':'0',
                                'ntimepr':'1',
                                'iread_eqdsk':'1',
@@ -241,7 +108,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                 'idevice':'-1',
                                 'eps':'0',
                                 'db_fac':'0.0',
-                                'mesh_filename':mesh_filenames[machine],
+                                'mesh_filename':"'%s'"%uni_smb[machine],
                                 'icsubtract':'1',
                                 'ntor':'0'},
                        'equilibrium':{'ntimemax':'0',
@@ -277,7 +144,154 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                    'eps':'0',
                                    'mesh_filename':"'part.smb'",
                                    'icsubtract':'1'}}
-        
+
+    # Setup batch file and slurm command
+    bash_commands = {'efit':'part_mesh.sh '+uni_smb[machine]+' $SLURM_NTASKS',
+                     'uni_equil':'part_mesh.sh '+uni_smb[machine]+' $SLURM_NTASKS',
+                     'adapt':'echo $SLURM_JOB_ID > job_id.txt',
+                     'equilibrium':'part_mesh.sh adapted.smb $SLURM_NTASKS',
+                     'stability':'part_mesh.sh adapted.smb $SLURM_NTASKS',
+                     'response':'part_mesh.sh adapted.smb $SLURM_NTASKS'}
+    if C1arch == 'haswell':
+        for key in bash_commands:
+            bash_commands[key] = 'export OMP_NUM_THREADS=1 \n'+bash_commands[key]
+    exec_commands = {'sunfire':'mpiexec --bind-to none -np ',
+                     'saturn': 'mpiexec --bind-to none -np ',
+                     'haswell':'srun -n '}
+    exec_args = {'efit':'$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout',
+                 'uni_equil':'$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout',
+                 'adapt':'1 m3dc1_2d >& C1stdout',
+                 'equilibrium':'$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout',
+                 'stability':'$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout',
+                 'response':'$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout'}
+
+    Psmall = {'sunfire':'kruskal,dawson,mque,ellis',
+              'saturn': 'short',
+              'haswell':'debug'}
+
+    Plarge = {'sunfire':'mque',
+              'saturn': 'medium',
+              'haswell':'regular, --qos=normal'}
+
+    Padapt = {'sunfire':Plarge['sunfire'],
+              'saturn': Plarge['sunfire'],
+              'haswell':'shared'}
+
+    slurm_options = {'sunfire':{'efit':['--partition='+Psmall['sunfire'],
+                                        '--nodes=1',
+                                        '--ntasks=16',
+                                        '--time=0:10:00',
+                                        '--mem=32000',
+                                        '--job-name=m3dc1_efit'],
+                                'uni_equil':['--partition='+Psmall['sunfire'],
+                                             '--nodes=1',
+                                             '--ntasks=16',
+                                             '--time=0:10:00',
+                                             '--mem=32000',
+                                             '--job-name=m3dc1_eq'],
+                                'adapt':['--partition='+Padapt['sunfire'],
+                                         '--nodes=1',
+                                         '--ntasks=1',
+                                         '--time=4:00:00',
+                                         '--mem=60000',
+                                         '--job-name=m3dc1_adapt'],
+                                'equilibrium':['--partition='+Plarge['sunfire'],
+                                               '--nodes=1',
+                                               '--ntasks=16',
+                                               '--time=1:00:00',
+                                               '--mem=120000',
+                                               '--job-name=m3dc1_equil'],
+                                'stability':['--partition='+Plarge['sunfire'],
+                                             '--nodes=1',
+                                             '--ntasks=32',
+                                             '--time=12:00:00',
+                                             '--mem=256000',
+                                             '--job-name=m3dc1_stab'],
+                                'response':['--partition='+Plarge['sunfire'],
+                                            '--nodes=1',
+                                            '--ntasks=32',
+                                            '--time=4:00:00',
+                                            '--mem=256000']},
+                     'saturn': {'efit':['--partition='+Psmall['saturn'],
+                                        '--nodes=1',
+                                        '--ntasks=16',
+                                        '--time=0:10:00',
+                                        '--mem=32000',
+                                        '--job-name=m3dc1_efit'],
+                                'uni_equil':['--partition='+Psmall['saturn'],
+                                             '--nodes=1',
+                                             '--ntasks=16',
+                                             '--time=0:10:00',
+                                             '--mem=32000',
+                                             '--job-name=m3dc1_eq'],
+                                'adapt':['--partition='+Padapt['saturn'],
+                                         '--nodes=1',
+                                         '--ntasks=8',
+                                         '--time=4:00:00',
+                                         '--mem=60000',
+                                         '--job-name=m3dc1_adapt'],
+                                'equilibrium':['--partition='+Plarge['saturn'],
+                                               '--nodes=1',
+                                               '--ntasks=16',
+                                               '--time=2:00:00',
+                                               '--mem=128000',
+                                               '--job-name=m3dc1_equil'],
+                                'stability':['--partition='+Plarge['saturn'],
+                                             '--nodes=1',
+                                             '--ntasks=16',
+                                             '--time=24:00:00',
+                                             '--mem=128000',
+                                             '--job-name=m3dc1_stab'],
+                                'response':['--partition='+Plarge['saturn'],
+                                            '--nodes=1',
+                                            '--ntasks=16',
+                                            '--time=8:00:00',
+                                            '--mem=128000']},
+                     'haswell':{'efit':['--partition='+Psmall['haswell'],
+                                        '--constraint=haswell',
+                                        '--nodes=1',
+                                        '--ntasks=32',
+                                        '--time=0:10:00',
+                                        '--mem=120000',
+                                        '--job-name=m3dc1_efit'],
+                                'uni_equil':['--partition='+Psmall['haswell'],
+                                             '--constraint=haswell',
+                                             '--nodes=1',
+                                             '--ntasks=32',
+                                             '--time=0:10:00',
+                                             '--mem=120000',
+                                             '--job-name=m3dc1_eq'],
+                                'adapt':['--partition='+Padapt['haswell'],
+                                         '--constraint=haswell',
+                                         '--ntasks=1',
+                                         '--time=4:00:00',
+                                         '--mem=60000',
+                                         '--job-name=m3dc1_adapt'],
+                                'equilibrium':['--partition='+Psmall['haswell'],
+                                               '--constraint=haswell',
+                                               '--nodes=4',
+                                               '--ntasks=128',
+                                               '--time=0:30:00',
+                                               '--mem=240000',
+                                               '--job-name=m3dc1_equil'],
+                                'stability':['--partition='+Plarge['haswell'],
+                                             '--constraint=haswell',
+                                             '--nodes=4',
+                                             '--ntasks=128',
+                                             '--time=4:00:00',
+                                             '--mem=240000',
+                                             '--job-name=m3dc1_stab'],
+                                'response':['--partition='+Psmall['haswell'],
+                                            '--constraint=haswell',
+                                            '--nodes=4',
+                                            '--ntasks=128',
+                                            '--time=0:30:00',
+                                            '--mem=240000']}
+                     }
+    
+    
+    base_files = ['batch_slurm','coil.dat','sizefieldParam',
+                  uni0_smb[machine],uni_txt[machine]]
         
     if task == 'setup':
 
@@ -350,21 +364,29 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print
     
+        # create folder
         efit_folder = 'uni_efit'
         if os.path.isdir(efit_folder):
             print 'Warning:  '+efit_folder+' exists and may be overwritten'
-        sh.copytree(template+'uni_efit/',efit_folder)
+        os.mkdir(efit_folder)
         
+        # load necessary files
+        for f in base_files:
+            mysh.cp(template+f,efit_folder+'/'+f)
         load_equil(setup_folder,efit_folder)
         mysh.cp(C1input_base,efit_folder+'/C1input')
         os.chdir(efit_folder)
         
+        # modify C1input file
         C1input_efit = dict(C1input_options[task])
         if C1input_mod is not None:
             C1input_efit.update(C1input_mod)
         mod_C1input(C1input_efit)
         
-        submit_batch = ['sbatch']+batch_options[task]+[batch_file]
+        # modify and sumbit batch_slurm
+        sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
+        sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
+        submit_batch = ['sbatch']+slurm_options[C1arch][task]+['batch_slurm']
         write_command(submit_batch)
         call(submit_batch)
         print
@@ -393,11 +415,14 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
         print
     
         uni_equil_folder = 'uni_equil'
+        os.mkdir(uni_equil_folder)
+        
         
         if os.path.isdir(uni_equil_folder):
             print 'Warning:  '+uni_equil_folder+' exists and may be overwritten'
-        sh.copytree(template+'uni_equil/',uni_equil_folder)
         
+        for f in base_files:
+            mysh.cp(template+f,uni_equil_folder+'/'+f)
         load_equil(setup_folder,uni_equil_folder)
         mysh.cp(C1input_base,uni_equil_folder+'/C1input')
         os.chdir(uni_equil_folder)
@@ -408,7 +433,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             C1input_uni_equil.update(C1input_mod)
         mod_C1input(C1input_uni_equil)
         
-        submit_batch = ['sbatch']+batch_options[task]+[batch_file]
+        sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
+        sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
+        submit_batch = ['sbatch']+slurm_options[C1arch][task]+['batch_slurm']
         
         if interactive:
             while True:
@@ -526,9 +553,11 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
         print
     
         adapt_folder = def_folder('rw','adapt')
+        os.mkdir(adapt_folder)
         
-        sh.copytree(template+'rw1_adapt/',adapt_folder)
         
+        for f in base_files:
+            mysh.cp(template+f,adapt_folder+'/'+f)
         load_equil(setup_folder,adapt_folder)
         mysh.cp(uni_equil_folder+'/current.dat.good',
                 adapt_folder+'/current.dat')
@@ -543,7 +572,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_adapt.update(C1input_mod)
             mod_C1input(C1input_adapt)
         
-            submit_batch = ['sbatch']+batch_options[task]+[batch_file]
+            sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
+            sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
+            submit_batch = ['sbatch']+slurm_options[C1arch][task]+['batch_slurm']
             write_command(submit_batch)
             call(submit_batch)
             print
@@ -641,8 +672,10 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             print
             
             equil_folder = def_folder('rw','equil')
-            sh.copytree(template+'rw1_equil/',equil_folder)
-        
+            os.mkdir(equil_folder)
+            
+            for f in base_files:
+                mysh.cp(template+f,equil_folder+'/'+f)
             load_equil(adapt_folder,equil_folder)
             mysh.cp(C1input_base,equil_folder+'/C1input')
             mysh.cp(adapt_folder+'/adapted0.smb', 
@@ -654,7 +687,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_equil.update(C1input_mod)
             mod_C1input(C1input_equil)
         
-            submit_batch = ['sbatch']+batch_options[task]+[batch_file]
+            sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
+            sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
+            submit_batch = ['sbatch']+slurm_options[C1arch][task]+['batch_slurm']
             write_command(submit_batch)
             call(submit_batch)
             print
@@ -706,10 +741,11 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 os.mkdir(ndir)
             os.chdir(ndir)
             
-            base_folder = rot+'1_stab'
             stab_folder = def_folder(rot,nflu+'f_stab')
-            sh.copytree(template+'n=/'+base_folder,stab_folder)
-        
+            os.mkdir(stab_folder)
+            
+            for f in base_files:
+                mysh.cp(template+f,stab_folder+'/'+f)
             load_equil('../'+adapt_folder,stab_folder)
             mysh.cp('../'+C1input_base,stab_folder+'/C1input')
             mysh.cp('../'+adapt_folder+'/adapted0.smb',
@@ -726,7 +762,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_stab.update(C1input_mod)
             mod_C1input(C1input_stab)
             
-            submit_batch = ['sbatch']+batch_options[task]+[batch_file]
+            sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
+            sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
+            submit_batch = ['sbatch']+slurm_options[C1arch][task]+['batch_slurm']
             write_command(submit_batch)
             call(submit_batch)
             print
@@ -786,12 +824,17 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             if C1input_mod is not None:
                 C1input_resp.update(C1input_mod)
             
-            for coil in ['iu','il']:
+            for coil in coils[machine]:
                 
-                base_folder = rot+'1_'+coil
                 resp_folder = def_folder(rot,nflu+'f_'+coil)
-                sh.copytree(template+'n=/'+base_folder,resp_folder)
+                os.mkdir(resp_folder)
                 
+                for f in base_files:
+                    mysh.cp(template+f,resp_folder+'/'+f)
+                mysh.cp(template+'rmp_coil_'+coil+'.dat',
+                        resp_folder+'/rmp_coil.dat')
+                mysh.cp(template+'rmp_current_'+coil+'.dat',
+                        resp_folder+'/rmp_current.dat')
                 load_equil('../'+adapt_folder,resp_folder)
                 mysh.cp('../'+C1input_base,resp_folder+'/C1input')
                 mysh.cp('../'+adapt_folder+'/adapted0.smb', 
@@ -801,8 +844,10 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 mod_C1input(C1input_resp)
                 
                 job_name = 'm3dc1_'+coil
-                submit_batch = ['sbatch']+batch_options[task]
-                submit_batch += ['--job-name='+job_name]+[batch_file]
+                sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
+                sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
+                submit_batch = ['sbatch']+slurm_options[C1arch][task]
+                submit_batch += ['--job-name='+job_name]+['batch_slurm']
                 write_command(submit_batch)
                 call(submit_batch)
             
