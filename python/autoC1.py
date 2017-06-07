@@ -67,7 +67,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     coils = {'DIII-D':['iu','il'],
              'NSTX-U':['iu','il'],
              'AUG':   ['iu','il'],
-             'KSTAR': ['iu','il']}
+             'KSTAR': ['tfec','mfec','bfec']}
     
     C1input_options = {'efit':{'ntimemax':'0',
                                'ntimepr':'1',
@@ -394,6 +394,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
         if machine in ['AUG']:
             while not os.path.exists('time_000.h5'):
                 sleep(10)
+            mysh.cp(template+'get_aug_currents.pro','./get_aug_currents.pro')
             call("\idl -e '@get_aug_currents'",shell=True)
         
         os.chdir('..')

@@ -1,8 +1,0 @@
-#!/bin/bash -vx
-
-# Partition mesh
-part_mesh.sh kstar-0.02-2.20-3.60-7K.smb $SLURM_NTASKS
-
-# Run M3D-C1
-rm -f C1stdout
-mpiexec --bind-to none -np $SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout
