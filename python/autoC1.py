@@ -171,7 +171,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
 
     Plarge = {'sunfire':'mque',
               'saturn': 'medium',
-              'haswell':'regular, --qos=normal'}
+              'haswell':'regular'}
 
     Padapt = {'sunfire':Plarge['sunfire'],
               'saturn': Plarge['sunfire'],
@@ -248,36 +248,42 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                             '--time=8:00:00',
                                             '--mem=128000']},
                      'haswell':{'efit':['--partition='+Psmall['haswell'],
+                                        '--qos=normal',
                                         '--constraint=haswell',
                                         '--nodes=1',
                                         '--ntasks=32',
                                         '--time=0:10:00',
                                         '--job-name=m3dc1_efit'],
                                 'uni_equil':['--partition='+Psmall['haswell'],
+                                             '--qos=normal',
                                              '--constraint=haswell',
                                              '--nodes=1',
                                              '--ntasks=32',
                                              '--time=0:10:00',
                                              '--job-name=m3dc1_eq'],
                                 'adapt':['--partition='+Padapt['haswell'],
+                                         '--qos=normal',
                                          '--constraint=haswell',
                                          '--ntasks=1',
                                          '--time=4:00:00',
                                          '--mem=60000',
                                          '--job-name=m3dc1_adapt'],
                                 'equilibrium':['--partition='+Plarge['haswell'],
+                                               '--qos=normal',
                                                '--constraint=haswell',
                                                '--nodes=2',
                                                '--ntasks=64',
                                                '--time=0:05:00',
                                                '--job-name=m3dc1_equil'],
                                 'stability':['--partition='+Plarge['haswell'],
+                                             '--qos=normal',
                                              '--constraint=haswell',
                                              '--nodes=2',
                                              '--ntasks=64',
                                              '--time=2:00:00',
                                              '--job-name=m3dc1_stab'],
                                 'response':['--partition='+Plarge['haswell'],
+                                            '--qos=normal',
                                             '--constraint=haswell',
                                             '--nodes=2',
                                             '--ntasks=64',
@@ -411,11 +417,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
         print
     
         uni_equil_folder = 'uni_equil'
-        os.mkdir(uni_equil_folder)
-        
-        
         if os.path.isdir(uni_equil_folder):
             print 'Warning:  '+uni_equil_folder+' exists and may be overwritten'
+        os.mkdir(uni_equil_folder)
         
         for f in base_files:
             mysh.cp(template+f,uni_equil_folder+'/'+f)
