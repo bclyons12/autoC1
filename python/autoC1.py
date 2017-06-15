@@ -152,12 +152,11 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                      'equilibrium':'part_mesh.sh adapted.smb $SLURM_NTASKS',
                      'stability':'part_mesh.sh adapted.smb $SLURM_NTASKS',
                      'response':'part_mesh.sh adapted.smb $SLURM_NTASKS'}
-    if C1arch == 'haswell':
-        for key in bash_commands:
-            bash_commands[key] = 'export OMP_NUM_THREADS=1 \n'+bash_commands[key]
+
     exec_commands = {'sunfire':'mpiexec --bind-to none -np ',
                      'saturn': 'mpiexec --bind-to none -np ',
-                     'haswell':'srun -n '}
+                     'haswell':'srun -n ',
+                     'cori-knl':'srun -n '}
     exec_args = {'efit':'$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout',
                  'uni_equil':'$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout',
                  'adapt':'1 m3dc1_2d >& C1stdout',
@@ -167,15 +166,18 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
 
     Psmall = {'sunfire':'kruskal,dawson,mque,ellis',
               'saturn': 'short',
-              'haswell':'debug'}
+              'haswell':'debug',
+              'cori-knl':'debug'}
 
     Plarge = {'sunfire':'mque',
               'saturn': 'medium',
-              'haswell':'regular'}
+              'haswell':'regular',
+              'cori-knl':'regular'}
 
     Padapt = {'sunfire':Plarge['sunfire'],
-              'saturn': Plarge['sunfire'],
-              'haswell':'shared'}
+              'saturn': Plarge['saturn'],
+              'haswell':'shared',
+              'cori-knl':Plarge['cori-knl']}
 
     slurm_options = {'sunfire':{'efit':['--partition='+Psmall['sunfire'],
                                         '--nodes=1',
@@ -286,6 +288,47 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                             '--qos=normal',
                                             '--constraint=haswell',
                                             '--nodes=2',
+                                            '--ntasks=64',
+                                            '--time=0:10:00']},
+                     'cori-knl':{'efit':['--partition='+Psmall['cori-knl'],
+                                        '--qos=normal',
+                                        '--constraint=knl,quad,cache',
+                                        '--nodes=1',
+                                        '--ntasks=64',
+                                        '--time=0:05:00',
+                                        '--job-name=m3dc1_efit'],
+                                'uni_equil':['--partition='+Psmall['cori-knl'],
+                                             '--qos=normal',
+                                             '--constraint=knl,quad,cache',
+                                             '--nodes=1',
+                                             '--ntasks=64',
+                                             '--time=0:05:00',
+                                             '--job-name=m3dc1_eq'],
+                                'adapt':['--partition='+Padapt['cori-knl'],
+                                         '--qos=normal',
+                                         '--constraint=knl,quad,cache',
+                                         '--ntasks=1',
+                                         '--time=1:00:00',
+                                         '--mem=60000',
+                                         '--job-name=m3dc1_adapt'],
+                                'equilibrium':['--partition='+Plarge['cori-knl'],
+                                               '--qos=normal',
+                                               '--constraint=knl,quad,cache',
+                                               '--nodes=1',
+                                               '--ntasks=64',
+                                               '--time=0:05:00',
+                                               '--job-name=m3dc1_equil'],
+                                'stability':['--partition='+Plarge['cori-knl'],
+                                             '--qos=normal',
+                                             '--constraint=knl,quad,cache',
+                                             '--nodes=1',
+                                             '--ntasks=64',
+                                             '--time=2:00:00',
+                                             '--job-name=m3dc1_stab'],
+                                'response':['--partition='+Plarge['cori-knl'],
+                                            '--qos=normal',
+                                            '--constraint=knl,quad,cache',
+                                            '--nodes=1',
                                             '--ntasks=64',
                                             '--time=0:10:00']}
                      }
