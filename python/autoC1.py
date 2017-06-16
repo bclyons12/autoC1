@@ -156,8 +156,10 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
 
     exec_commands = {'sunfire':'mpiexec --bind-to none -np ',
                      'iris': 'mpiexec --bind-to none -np ',
+                     'saturn': 'mpiexec --bind-to none -np ',
                      'cori-haswell':'srun -n ',
-                     'cori-knl':'srun -n '}
+                     'cori-knl':'srun -n ',
+                     'edison':'srun -n '}
     exec_args = {'efit':'$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout',
                  'uni_equil':'$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout',
                  'adapt':'1 m3dc1_2d >& C1stdout',
