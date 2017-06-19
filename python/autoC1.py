@@ -381,7 +381,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                              '--job-name=m3dc1_eq'],
                                 'adapt':['--partition='+Padapt['edison'],
                                          '--qos=normal',
-                                         '--ntasks=1',
+                                         '--ntasks=2', # to overcome memory limit
                                          '--time=1:00:00',
                                          '--mem=60000',
                                          '--job-name=m3dc1_adapt'],
