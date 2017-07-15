@@ -487,7 +487,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             mysh.cp(r'g*.*','geqdsk')
             extract_profiles(machine=machine)
 
-        pppl_bin  = '/p/tsc/nferraro/src/svn_local/trunk/unstructured/_sunfire.openmpi-1.8.4/'
+        pppl_bin  = '/p/tsc/C1/m3dc1-sunfire.pppl.gov-1.8-devel/bin/'
         ga_bin    = '/fusion/projects/codes/m3dc1/m3dc1-iris-1.8-devel/bin/'
         nersc_bin = '/global/project/projectdirs/mp288/C1/m3dc1-cori-1.8-devel/bin/'
         a2cc_bin = {'sunfire':pppl_bin,
