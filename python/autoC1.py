@@ -840,7 +840,17 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                     task = exit
                 else:
                     
-                    option, ntor, nflu = calcs[ncalc]
+                    if len(calcs[ncalc]) == 3:
+                        option, ntor, nflu = calcs[ncalc]
+                        extra = None
+                    elif len(calcs[ncalc]) == 4:
+                        option, ntor, nflu, extra = calcs[ncalc]
+                    else:
+                        print "*** Improper calc length ***"
+                        print "Skipping ", calcs[ncalc]
+                        ncalc += 1
+                        continue
+                        
                     task = opts[option]
                     print task + ' calculation'
                     if ntor is not None:
@@ -1013,36 +1023,69 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             if C1input_mod is not None:
                 C1input_resp.update(C1input_mod)
             
-            for coil in coils[machine]:
-                
-                resp_folder = def_folder(rot,nflu+'f_'+coil)
+            if extra == None:
+                # Using M3D-C1 window pane model
+           	for coil in coils[machine]:
+           	    
+           	    resp_folder = def_folder(rot,nflu+'f_'+coil)
+           	    os.mkdir(resp_folder)
+           	    
+           	    for f in base_files:
+           	        mysh.cp(template+f,resp_folder+'/'+f)
+           	    mysh.cp(template+'rmp_coil_'+coil+'.dat',
+           	            resp_folder+'/rmp_coil.dat')
+           	    mysh.cp(template+'rmp_current_'+coil+'.dat',
+           	            resp_folder+'/rmp_current.dat')
+           	    load_equil('../'+adapt_folder,resp_folder)
+           	    mysh.cp('../'+C1input_base,resp_folder+'/C1input')
+           	    mysh.cp('../'+adapt_folder+'/adapted0.smb', 
+           	            resp_folder+'/adapted0.smb')
+           	    os.chdir(resp_folder)
+           	    
+           	    mod_C1input(C1input_resp)
+           	    
+           	    job_name = 'm3dc1_'+coil
+           	    sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
+           	    sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
+           	    submit_batch = ['sbatch']+slurm_options[C1arch][task]
+           	    submit_batch += ['--job-name='+job_name]+['batch_slurm']
+           	    write_command(submit_batch)
+           	    call(submit_batch)
+           	
+           	    os.chdir('..')
+           	    print  '>>> Job ' + job_name + ' submitted'
+
+            else:
+                # assuming extra is the PROBE_G filename
+                resp_folder = def_folder(rot,nflu+'f_probeg')
                 os.mkdir(resp_folder)
-                
+           	    
                 for f in base_files:
                     mysh.cp(template+f,resp_folder+'/'+f)
-                mysh.cp(template+'rmp_coil_'+coil+'.dat',
-                        resp_folder+'/rmp_coil.dat')
-                mysh.cp(template+'rmp_current_'+coil+'.dat',
-                        resp_folder+'/rmp_current.dat')
                 load_equil('../'+adapt_folder,resp_folder)
                 mysh.cp('../'+C1input_base,resp_folder+'/C1input')
                 mysh.cp('../'+adapt_folder+'/adapted0.smb', 
                         resp_folder+'/adapted0.smb')
                 os.chdir(resp_folder)
                 
+                os.symlink('../../'+extra,'error_field')
+                C1input_resp.update({'irmp':'0'})
+                C1input_resp.update({'iread_ext_field':'1'})
+                C1input_resp.update({'extsubtract':'1'})
                 mod_C1input(C1input_resp)
-                
-                job_name = 'm3dc1_'+coil
+           	    
+                job_name = 'm3dc1_probeg'
                 sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
                 sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
                 submit_batch = ['sbatch']+slurm_options[C1arch][task]
                 submit_batch += ['--job-name='+job_name]+['batch_slurm']
                 write_command(submit_batch)
                 call(submit_batch)
-            
+           	
                 os.chdir('..')
                 print  '>>> Job ' + job_name + ' submitted'
-            
+
+
             print
             
             if interactive:            
