@@ -169,7 +169,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                      'cori-knl':'srun -n ',
                      'edison':'srun -n '}
 
-    standard_ea = '$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps >& C1stdout'
+    standard_ea = '$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 200 >& C1stdout'
     adapt_ea = {False:'1 m3dc1_2d >& C1stdout',
                 True: '$SLURM_NTASKS m3dc1_2d >& C1stdout'}
     exec_args = {'efit':standard_ea,

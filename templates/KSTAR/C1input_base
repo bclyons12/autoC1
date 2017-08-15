@@ -157,7 +157,7 @@
 	nonrect = 1
 
 	mesh_filename = 
-	mesh_model = 'kstar-0.02-2.20-3.60.txt'
+	mesh_model = 'kstar-0.02-3.00-4.00.txt'
 
 	icsubtract = 
 	imulti_region = 1
