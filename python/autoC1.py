@@ -30,7 +30,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
            adapt_folder='rw1_adapt', adapted_mesh=None, parallel_adapt=False,
            C1input_mod=None, C1input_base='C1input_base',rot='eb',
            saturn_partition='batch',nersc_repo='atom',
-           time_factor=1.0,C1version='1.8'):
+           time_factor=1.0,C1_version='1.8'):
     
     if task == 'all':
         task = 'setup'
@@ -965,7 +965,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_stab.update({'db_fac':'0.0'})
             elif nflu == '2':
                 C1input_stab.update({'db_fac':'1.0'})
-                if C1version=='1.8':
+                if C1_version=='1.8':
                     	C1input_stab.update({'igs_extend_diamag':'1'})
             if C1input_mod is not None:
                 C1input_stab.update(C1input_mod)
@@ -1030,7 +1030,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_resp.update({'db_fac':'0.0'})
             elif nflu == '2':
                 C1input_resp.update({'db_fac':'1.0'})
-                if C1version=='1.8':
+                if C1_version=='1.8':
                     	C1input_resp.update({'igs_extend_diamag':'1'})
             if C1input_mod is not None:
                 C1input_resp.update(C1input_mod)
