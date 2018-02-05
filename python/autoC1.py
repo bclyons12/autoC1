@@ -56,25 +56,30 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     iread_eqdsks = {'DIII-D':'3',
                     'NSTX-U':'3',
                     'AUG':'1',
-                    'KSTAR':'3'}
+                    'KSTAR':'3',
+                    'EAST':'3'}
     
     uni_smb  = {'DIII-D':'diiid0.02.smb',
                 'NSTX-U':'nstxu0.02.smb',
                 'AUG':   'aug0.02.smb',
-                'KSTAR': 'kstar-0.02-3.00-4.00-7K.smb'}
+                'KSTAR': 'kstar-0.02-3.00-4.00-7K.smb',
+                'EAST':  'east-0.02-2.50-4.00-6K.smb'}
     uni0_smb = {'DIII-D':'diiid0.020.smb',
                'NSTX-U':'nstxu0.020.smb',
                'AUG':   'aug0.020.smb',
-               'KSTAR': 'kstar-0.02-3.00-4.00-7K0.smb'}
+               'KSTAR': 'kstar-0.02-3.00-4.00-7K0.smb',
+               'EAST':  'east-0.02-2.50-4.00-6K0.smb'}
     uni_txt = {'DIII-D':'diiid0.02.txt',
                'NSTX-U':'nstxu0.02.txt',
                'AUG':   'aug0.02.txt',
-               'KSTAR': 'kstar-0.02-3.00-4.00.txt'}
+               'KSTAR': 'kstar-0.02-3.00-4.00.txt',
+               'EAST':  'east-0.02-2.50-4.00.txt'}
     
     coils = {'DIII-D':['iu','il'],
              'NSTX-U':['iu','il'],
              'AUG':   ['iu','il'],
-             'KSTAR': ['tfec','mfec','bfec']}
+             'KSTAR': ['tfec','mfec','bfec'],
+             'EAST':  ['iu','il']}
     
     C1input_options = {'efit':{'ntimemax':'0',
                                'ntimepr':'1',
@@ -179,7 +184,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                  'stability':standard_ea,
                  'response':standard_ea}
 
-    Psmall = {'sunfire':'kruskal,dawson,mque,ellis',
+    Psmall = {'sunfire':'dawson',
               'iris':'short',
               'saturn':saturn_partition,
               'cori-haswell':'debug,regular',
@@ -495,7 +500,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             mysh.cp(r'g*.*','geqdsk')
             extract_profiles(machine=machine)
 
-        pppl_bin  = '/p/tsc/C1/m3dc1-sunfire.pppl.gov-1.8-devel/bin/'
+        pppl_bin  = '/p/tsc/C1/m3dc1-sunfire.openmpi-1.10.3-1.9-devel/bin/'
         ga_bin    = '/fusion/projects/codes/m3dc1/m3dc1-iris-1.8-devel/bin/'
         nersc_bin = '/global/project/projectdirs/mp288/C1/m3dc1-cori-1.8-devel/bin/'
         a2cc_bin = {'sunfire':pppl_bin,
@@ -507,11 +512,13 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
 
         a2cc = {'DIII-D':'a2cc',
                 'NSTX-U':'a2cc',
-                'KSTAR':a2cc_bin[C1arch]+'a2cc'}
-        if machine in ['DIII-D','NSTX-U','KSTAR']:
+                'KSTAR':a2cc_bin[C1arch]+'a2cc',
+                'EAST':a2cc_bin[C1arch]+'a2cc'}
+        if machine in ['DIII-D','NSTX-U','KSTAR','EAST']:
 
             fc = open('current.dat','w')
             mysh.cp(r'a*.*','a0.0')
+            print a2cc[machine]
             call([a2cc[machine], 'a0.0'], stdout=fc)
             fc.close()
             os.remove('a0.0')
