@@ -157,10 +157,10 @@
 	nonrect = 1
 
 	mesh_filename = 
-	mesh_model = 'diiid0.02.txt'
+	mesh_model = 
 
 	icsubtract = 
-	imulti_region = 1
+	imulti_region =
 
 ! Grad-Shafranov Options
 ! ======================
