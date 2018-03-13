@@ -30,7 +30,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
            adapt_folder='rw1_adapt', adapted_mesh=None, parallel_adapt=False,
            C1input_mod=None, C1input_base='C1input_base',rot='eb',
            saturn_partition='batch',nersc_repo='atom',
-           time_factor=1.0,C1_version='1.8'):
+           time_factor=1.0,C1_version='1.8',mesh_type='rw'):
     
     if task == 'all':
         task = 'setup'
@@ -53,27 +53,30 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     if not os.path.exists(C1input_base):
         mysh.cp(template+'/C1input_base',C1input_base)
 
-    iread_eqdsks = {'DIII-D':'3',
-                    'NSTX-U':'3',
-                    'AUG':'1',
-                    'KSTAR':'3',
-                    'EAST':'3'}
+    iread_eqdsks = {'DIII-D':{'rw':'3','fw':1},
+                    'NSTX-U':{'rw':'3'},
+                    'AUG':{'rw':'1'},
+                    'KSTAR':{'rw':'3'},
+                    'EAST':{'rw':'3'}}
+    idevices     = {'rw':'-1','fw':'1'}
+    icsubtracts  = {'rw':'1','fw':'0'}
+    imulti_regions = {'rw':'1','fw':'0'}
     
-    uni_smb  = {'DIII-D':'diiid0.02.smb',
-                'NSTX-U':'nstxu0.02.smb',
-                'AUG':   'aug0.02.smb',
-                'KSTAR': 'kstar-0.02-3.00-4.00-7K.smb',
-                'EAST':  'east-0.02-2.50-4.00-6K.smb'}
-    uni0_smb = {'DIII-D':'diiid0.020.smb',
-               'NSTX-U':'nstxu0.020.smb',
-               'AUG':   'aug0.020.smb',
-               'KSTAR': 'kstar-0.02-3.00-4.00-7K0.smb',
-               'EAST':  'east-0.02-2.50-4.00-6K0.smb'}
-    uni_txt = {'DIII-D':'diiid0.02.txt',
-               'NSTX-U':'nstxu0.02.txt',
-               'AUG':   'aug0.02.txt',
-               'KSTAR': 'kstar-0.02-3.00-4.00.txt',
-               'EAST':  'east-0.02-2.50-4.00.txt'}
+    uni_smb  = {'DIII-D':{'rw':'diiid0.02.smb','fw':'analytic-8K.smb'},
+                'NSTX-U':{'rw':'nstxu0.02.smb'},
+                'AUG':   {'rw':'aug0.02.smb'},
+                'KSTAR': {'rw':'kstar-0.02-3.00-4.00-7K.smb'},
+                'EAST':  {'rw':'east-0.02-2.50-4.00-6K.smb'}}
+    uni0_smb = {'DIII-D':{'rw':'diiid0.020.smb','fw':'analytic-8K0.smb'},
+               'NSTX-U': {'rw':'nstxu0.020.smb'},
+               'AUG':    {'rw':'aug0.020.smb'},
+               'KSTAR':  {'rw':'kstar-0.02-3.00-4.00-7K0.smb'},
+               'EAST':   {'rw':'east-0.02-2.50-4.00-6K0.smb'}}
+    uni_txt  = {'DIII-D':{'rw':'diiid0.02.txt','fw':'analytic.txt'},
+                'NSTX-U':{'rw':'nstxu0.02.txt'},
+                'AUG':   {'rw':'aug0.02.txt'},
+                'KSTAR': {'rw':'kstar-0.02-3.00-4.00.txt'},
+                'EAST':  {'rw':'east-0.02-2.50-4.00.txt'}}
     
     coils = {'DIII-D':['iu','il'],
              'NSTX-U':['iu','il'],
@@ -92,80 +95,92 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                'eps':'0',
                                'db_fac':'0.0',
                                'mesh_filename':"'part.smb'",
+                               'mesh_model':"'%s'"%uni_txt[machine][mesh_type],
                                'icsubtract':'0',
+                               'imulti_region':imulti_regions[mesh_type],
                                'igs':'0',
                                'ntor':'0'},
                        'uni_equil':{'ntimemax':'0',
                                     'ntimepr':'1',
-                                    'iread_eqdsk':iread_eqdsks[machine],
+                                    'iread_eqdsk':iread_eqdsks[machine][mesh_type],
                                     'irmp':'0',
                                     'extsubtract':'0',
                                     'max_ke':'0',
                                     'itime_independent':'1',
-                                    'idevice':'-1',
+                                    'idevice':idevices[mesh_type],
                                     'eps':'0',
                                     'db_fac':'0.0',
                                     'mesh_filename':"'part.smb'",
-                                    'icsubtract':'1',
+                                    'mesh_model':"'%s'"%uni_txt[machine][mesh_type],
+                                    'icsubtract':icsubtracts[mesh_type],
+                                    'imulti_region':imulti_regions[mesh_type],
                                     'ntor':'0'},
                        'adapt':{'ntimemax':'0',
                                 'ntimepr':'1',
-                                'iread_eqdsk':iread_eqdsks[machine],
+                                'iread_eqdsk':iread_eqdsks[machine][mesh_type],
                                 'irmp':'0',
                                 'extsubtract':'0',
                                 'iadapt':'1',
                                 'adapt_smooth':'0.02',
                                 'max_ke':'0',
                                 'itime_independent':'1',
-                                'idevice':'-1',
+                                'idevice':idevices[mesh_type],
                                 'eps':'0',
                                 'db_fac':'0.0',
-                                'mesh_filename':"'%s'"%uni_smb[machine],
-                                'icsubtract':'1',
+                                'mesh_filename':"'%s'"%uni_smb[machine][mesh_type],
+                                'mesh_model':"'%s'"%uni_txt[machine][mesh_type],
+                                'icsubtract':icsubtracts[mesh_type],
+                                'imulti_region':imulti_regions[mesh_type],
                                 'ntor':'0'},
                        'equilibrium':{'ntimemax':'0',
                                       'ntimepr':'1',
-                                      'iread_eqdsk':iread_eqdsks[machine],
+                                      'iread_eqdsk':iread_eqdsks[machine][mesh_type],
                                       'irmp':'0',
                                       'extsubtract':'0',
                                       'max_ke':'0',
                                       'itime_independent':'1',
-                                      'idevice':'-1',
+                                      'idevice':idevices[mesh_type],
                                       'eps':'0',
                                       'db_fac':'0.0',
                                       'mesh_filename':"'part.smb'",
-                                      'icsubtract':'1',
+                                      'mesh_model':"'%s'"%uni_txt[machine][mesh_type],
+                                      'icsubtract':icsubtracts[mesh_type],
+                                      'imulti_region':imulti_regions[mesh_type],
                                       'ntor':'0'},
-                       'stability':{'iread_eqdsk':iread_eqdsks[machine],
+                       'stability':{'iread_eqdsk':iread_eqdsks[machine][mesh_type],
                                     'irmp':'0',
                                     'extsubtract':'0',
                                     'max_ke':'1',
                                     'itime_independent':'0',
-                                    'idevice':'-1',
+                                    'idevice':idevices[mesh_type],
                                     'eps':'1e-8',
                                     'mesh_filename':"'part.smb'",
-                                    'icsubtract':'1'},
+                                    'mesh_model':"'%s'"%uni_txt[machine][mesh_type],
+                                    'icsubtract':icsubtracts[mesh_type],
+                                    'imulti_region':imulti_regions[mesh_type]},
                        'response':{'ntimemax':'1',
                                    'ntimepr':'1',
-                                   'iread_eqdsk':iread_eqdsks[machine],
+                                   'iread_eqdsk':iread_eqdsks[machine][mesh_type],
                                    'irmp':'1',
                                    'extsubtract':'1',
                                    'max_ke':'0',
                                    'itime_independent':'1',
-                                   'idevice':'-1',
+                                   'idevice':idevices[mesh_type],
                                    'eps':'0',
                                    'mesh_filename':"'part.smb'",
-                                   'icsubtract':'1'}}
+                                   'mesh_model':"'%s'"%uni_txt[machine][mesh_type],
+                                   'icsubtract':icsubtracts[mesh_type],
+                                   'imulti_region':imulti_regions[mesh_type]}}
 
     # Setup batch file and slurm command
-    bash_commands = {'efit':'part_mesh.sh '+uni_smb[machine]+' $SLURM_NTASKS',
-                     'uni_equil':'part_mesh.sh '+uni_smb[machine]+' $SLURM_NTASKS',
+    bash_commands = {'efit':'part_mesh.sh '+uni_smb[machine][mesh_type]+' $SLURM_NTASKS',
+                     'uni_equil':'part_mesh.sh '+uni_smb[machine][mesh_type]+' $SLURM_NTASKS',
                      'adapt':'echo $SLURM_JOB_ID > job_id.txt',
                      'equilibrium':'part_mesh.sh adapted.smb $SLURM_NTASKS',
                      'stability':'part_mesh.sh adapted.smb $SLURM_NTASKS',
                      'response':'part_mesh.sh adapted.smb $SLURM_NTASKS'}
     if parallel_adapt:
-        bash_commands['adapt'] += '\n'+'part_mesh.sh '+uni_smb[machine]+' $SLURM_NTASKS'
+        bash_commands['adapt'] += '\n'+'part_mesh.sh '+uni_smb[machine][mesh_type]+' $SLURM_NTASKS'
 
     exec_commands = {'sunfire':'mpiexec --bind-to none -np ',
                      'iris': 'srun --mpi=pmi2 -n ',
@@ -485,7 +500,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     
     
     base_files = ['batch_slurm','coil.dat','sizefieldParam',
-                  uni0_smb[machine],uni_txt[machine]]
+                  uni0_smb[machine][mesh_type],uni_txt[machine][mesh_type]]
         
     if task == 'setup':
 
@@ -751,15 +766,14 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     
     if task == 'adapt':
         
+        adapt_folder = def_folder(mesh_type,'adapt')
+        os.mkdir(adapt_folder)
+
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-        print 'Adapting mesh to equilibrium in rw1_adapt/'
+        print 'Adapting mesh to equilibrium in %s/'%adapt_folder
         print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
         print
     
-        adapt_folder = def_folder('rw','adapt')
-        os.mkdir(adapt_folder)
-        
-        
         for f in base_files:
             mysh.cp(template+f,adapt_folder+'/'+f)
         load_equil(setup_folder,adapt_folder)
@@ -885,7 +899,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             print
             
-            equil_folder = def_folder('rw','equil')
+            equil_folder = def_folder(mesh_type,'equil')
             os.mkdir(equil_folder)
             
             for f in base_files:
