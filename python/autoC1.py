@@ -30,7 +30,8 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
            adapt_folder='rw1_adapt', adapted_mesh=None, parallel_adapt=False,
            C1input_mod=None, C1input_base='C1input_base',rot='eb',
            saturn_partition='batch',nersc_repo='atom',
-           time_factor=1.0,C1_version='1.8',mesh_type='rw'):
+           time_factor=1.0,C1_version='1.8',mesh_type='rw',
+           adapt_coil_file=None,adapt_current_file=None,adapt_coil_delta=0.):
     
     if task == 'all':
         task = 'setup'
@@ -122,6 +123,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                 'extsubtract':'0',
                                 'iadapt':'1',
                                 'adapt_smooth':'0.02',
+                                'adapt_coil_delta':adapt_coil_delta,
                                 'max_ke':'0',
                                 'itime_independent':'1',
                                 'idevice':idevices[mesh_type],
@@ -783,6 +785,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
         if adapted_mesh is None:
             # Perform mesh adaptation
             mysh.cp(C1input_base,adapt_folder+'/C1input')
+            if adapt_coil_delta > 0.:
+                mysh.cp(adapt_coil_file,adapt_folder+'/adapt_coil.dat')
+                mysh.cp(adapt_current_file,adapt_folder+'/adapt_current.dat')
             os.chdir(adapt_folder)
         
             C1input_adapt = dict(C1input_options[task])
