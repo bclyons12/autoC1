@@ -31,7 +31,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
            C1input_mod=None, C1input_base='C1input_base',rot='eb',
            saturn_partition='batch',nersc_repo='atom',
            time_factor=1.0,C1_version='1.8',mesh_type='rw',
-           adapt_coil_file=None,adapt_current_file=None,adapt_coil_delta=0.):
+           adapt_coil_file=None,adapt_current_file=None,adapt_coil_delta=None):
     
     if task == 'all':
         task = 'setup'
@@ -123,7 +123,6 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                 'extsubtract':'0',
                                 'iadapt':'1',
                                 'adapt_smooth':'0.02',
-                                'adapt_coil_delta':adapt_coil_delta,
                                 'max_ke':'0',
                                 'itime_independent':'1',
                                 'idevice':idevices[mesh_type],
@@ -173,6 +172,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                    'mesh_model':"'%s'"%uni_txt[machine][mesh_type],
                                    'icsubtract':icsubtracts[mesh_type],
                                    'imulti_region':imulti_regions[mesh_type]}}
+
+    if adapt_coil_delta is not None:
+        C1input_options['adapt']['adapt_coil_delta'] = adapt_coil_delta
 
     # Setup batch file and slurm command
     bash_commands = {'efit':'part_mesh.sh '+uni_smb[machine][mesh_type]+' $SLURM_NTASKS',
@@ -991,8 +993,11 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_stab.update({'db_fac':'0.0'})
             elif nflu == '2':
                 C1input_stab.update({'db_fac':'1.0'})
-                if C1_version=='1.8':
-                    	C1input_stab.update({'igs_extend_diamag':'1'})
+                try:
+                    if float(C1_version) > 1.7:
+                        C1input_stab.update({'igs_extend_diamag':'1'})
+                except ValueError:
+                    C1input_stab.update({'igs_extend_diamag':'1'})
             if C1input_mod is not None:
                 C1input_stab.update(C1input_mod)
             mod_C1input(C1input_stab)
