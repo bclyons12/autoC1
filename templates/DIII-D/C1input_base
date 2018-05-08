@@ -177,7 +177,7 @@
 	igs = 100
 	
 	! implicitness of GS Picard iterations
-	th_gs = 0.8
+	th_gs = 0.5
 
 	djdpsi = 0.0
 	q0 = 0.9	! saftey factor near the magnetic axis
