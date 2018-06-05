@@ -189,10 +189,10 @@
 
 	expn = 0.0
 	divertors = 0
-	xnull = 1.27282
-	znull = -1.16212
-	xnull2 = 1.15
-	znull2 = 1.25
+	xnull = 1.25
+	znull = -1.1
+	xnull2 = 1.25
+	znull2 = 1.1
 	sigma0 = 0.4
 
 	igs_extend_p = 1
