@@ -199,9 +199,13 @@
 
 	gs_vertical_feedback(11) = -2000.0
 	gs_vertical_feedback(12) =  2000.0
+	gs_radial_feedback(13) = -1000.0
+	gs_radial_feedback(14) = -1000.0
 
 	gs_vertical_feedback_i(11) = -1000.0
 	gs_vertical_feedback_i(12) =  1000.0
+	gs_radial_feedback_i(13) = -500.0
+	gs_radial_feedback_i(14) = -500.0
 
 	! toroidal mode number for linear simulations
 	ntor = 
