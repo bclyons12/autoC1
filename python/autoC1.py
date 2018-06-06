@@ -57,6 +57,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             if float(C1_version) < 1.9:
                 # before version 1.9, z_ion was called zeff
                 sedpy('z_ion','zeff',C1input_base)
+        except ValueError:
+            # devel versions should have z_ion
+            pass
 
     iread_eqdsks = {'DIII-D':{'rw':'3','fw':1},
                     'NSTX-U':{'rw':'3'},
