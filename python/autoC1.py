@@ -53,6 +53,10 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     
     if not os.path.exists(C1input_base):
         mysh.cp(template+'/C1input_base',C1input_base)
+        try:
+            if float(C1_version) < 1.9:
+                # before version 1.9, z_ion was called zeff
+                sedpy('z_ion','zeff',C1input_base)
 
     iread_eqdsks = {'DIII-D':{'rw':'3','fw':1},
                     'NSTX-U':{'rw':'3'},
