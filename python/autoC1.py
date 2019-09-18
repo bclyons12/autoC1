@@ -210,14 +210,14 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                  'stability':standard_ea,
                  'response':standard_ea}
 
-    Psmall = {'sunfire':'dawson',
+    Psmall = {'sunfire':'general',
               'iris':'short',
               'saturn':saturn_partition,
               'cori-haswell':'debug',
               'cori-knl':'debug',
               'edison':'debug'}
 
-    Plarge = {'sunfire':'mque',
+    Plarge = {'sunfire':'general',
               'iris':'medium',
               'saturn':saturn_partition,
               'cori-haswell':'regular',
