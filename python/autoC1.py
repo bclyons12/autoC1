@@ -65,7 +65,8 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                     'NSTX-U':{'rw':'3'},
                     'AUG':{'rw':'1'},
                     'KSTAR':{'rw':'3'},
-                    'EAST':{'rw':'3'}}
+                    'EAST':{'rw':'3'},
+                    'JET':{'rw':'3','fw':1}}
     idevices     = {'rw':'-1','fw':'1'}
     icsubtracts  = {'rw':'1','fw':'0'}
     imulti_regions = {'rw':'1','fw':'0'}
@@ -74,23 +75,30 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 'NSTX-U':{'rw':'nstxu0.02.smb'},
                 'AUG':   {'rw':'aug0.02.smb'},
                 'KSTAR': {'rw':'kstar-0.02-3.00-4.00-7K.smb'},
-                'EAST':  {'rw':'east-0.02-2.50-4.00-6K.smb'}}
+                'EAST':  {'rw':'east-0.02-2.50-4.00-6K.smb'},
+                'JET':   {'rw':'jet-0.02-2.5-4.0-13K.smb',
+                          'fw':'analytic-10K.smb'}}
     uni0_smb = {'DIII-D':{'rw':'diiid0.020.smb','fw':'analytic-8K0.smb'},
                'NSTX-U': {'rw':'nstxu0.020.smb'},
                'AUG':    {'rw':'aug0.020.smb'},
                'KSTAR':  {'rw':'kstar-0.02-3.00-4.00-7K0.smb'},
-               'EAST':   {'rw':'east-0.02-2.50-4.00-6K0.smb'}}
+               'EAST':   {'rw':'east-0.02-2.50-4.00-6K0.smb'},
+                'JET':   {'rw':'jet-0.02-2.5-4.0-13K0.smb',
+                          'fw':'analytic-10K0.smb'}}
     uni_txt  = {'DIII-D':{'rw':'diiid0.02.txt','fw':'analytic.txt'},
                 'NSTX-U':{'rw':'nstxu0.02.txt'},
                 'AUG':   {'rw':'aug0.02.txt'},
                 'KSTAR': {'rw':'kstar-0.02-3.00-4.00.txt'},
-                'EAST':  {'rw':'east-0.02-2.50-4.00.txt'}}
+                'EAST':  {'rw':'east-0.02-2.50-4.00.txt'},
+                'JET':   {'rw':'jet-0.02-2.5-4.0.txt',
+                          'fw':'analytic.txt'}}
     
     coils = {'DIII-D':['iu','il'],
              'NSTX-U':['iu','il'],
              'AUG':   ['iu','il'],
              'KSTAR': ['tfec','mfec','bfec'],
-             'EAST':  ['iu','il']}
+             'EAST':  ['iu','il'],
+             'JET':   []}
     
     C1input_options = {'efit':{'ntimemax':'0',
                                'ntimepr':'1',
