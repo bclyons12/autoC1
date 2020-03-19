@@ -13,7 +13,7 @@ def mod_C1input(C1inputs=None,folder='.',append=True):
     if C1inputs is None:
         return
 
-    print 'Modifying C1input file'
+    print('Modifying C1input file')
     
     C1copy = C1inputs.copy()
     
@@ -24,7 +24,7 @@ def mod_C1input(C1inputs=None,folder='.',append=True):
     if 'feedback' in C1copy:
         fb_fac = float(C1copy['feedback'])
         C1copy['feedback'] = None
-        print "\tMultiplying feedback values by " + str(fb_fac)
+        print("\tMultiplying feedback values by " + str(fb_fac))
     else:
         fb_fac = None
 
@@ -40,7 +40,7 @@ def mod_C1input(C1inputs=None,folder='.',append=True):
                         if key.strip() == spl[0].strip():
                             val = str(C1copy[key]).strip()
                             C1copy[key]=None
-                            print "\tChanging " + spl[0].strip() + " from " + spl[1].strip() + " to " + val.strip()
+                            print("\tChanging " + spl[0].strip() + " from " + spl[1].strip() + " to " + val.strip())
                             #spl[1] = val.rjust(len(spl[1])-1)
                             spl[1] = "  " + val
                             line = spl[0] + "=" + spl[1] + "\n"
@@ -58,7 +58,7 @@ def mod_C1input(C1inputs=None,folder='.',append=True):
                     val = C1copy[key]
                     if val is not None:
                         line = "\t"+str(key).strip()+"  =  "+str(val).strip()+"\n"
-                        print "\tAppending " + line.strip()
+                        print("\tAppending " + line.strip())
                         fout.write('\n')
                         fout.write(line)
                 fout.write('\n')
