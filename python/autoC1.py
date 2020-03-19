@@ -1043,8 +1043,11 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 C1input_resp.update({'db_fac':'0.0'})
             elif nflu == '2':
                 C1input_resp.update({'db_fac':'1.0'})
-                if C1_version=='1.8':
-                    C1input_resp.update({'igs_extend_diamag':'1'})
+                try:
+                    if float(C1_version) > 1.7:
+                        C1input_stab.update({'igs_extend_diamag':'1'})
+                except ValueError:
+                    C1input_stab.update({'igs_extend_diamag':'1'})
             if C1input_mod is not None:
                 C1input_resp.update(C1input_mod)
 
