@@ -20,7 +20,7 @@ def extract_profiles(machine='DIII-D',profile='all'):
     if machine in ['DIII-D','NSTX-U']:
     
         profile = 'all'
-        print 'Extracting all profiles from single file'
+        print('Extracting all profiles from single file')
         
         if len(glob(r'm3dc1_profiles_*.txt')) != 0:
             mysh.cp(r'm3dc1_profiles_*.txt','m3dc1_profiles_0.txt')
@@ -29,7 +29,7 @@ def extract_profiles(machine='DIII-D',profile='all'):
             mysh.cp(r'p*.*','p0.0')
             prof = 'p0.0'
         else:
-            print 'Error: EFIT profiles file not found'
+            print('Error: EFIT profiles file not found')
             return
         
         # extract profiles using Nate's utility        
@@ -55,7 +55,7 @@ def extract_profiles(machine='DIII-D',profile='all'):
     
     elif machine in ['AUG']:
         
-        print 'Extracting profile '+profile
+        print('Extracting profile '+profile)
         
         if profile in ['all','ne']:
             if len(glob(r'neprof_*.asc')) != 0:
@@ -115,7 +115,7 @@ def extract_profiles(machine='DIII-D',profile='all'):
 
     elif machine in ['AUG']:
         
-        print 'Extracting profile '+profile
+        print('Extracting profile '+profile)
         
         if profile in ['all','ne','NE']:
             if len(glob(r'NE_*.dat')) != 0:

@@ -6,7 +6,7 @@ Script to run M3D-C1 automatically
 
 Author:       Brendan Carrick Lyons
 Date created: Thu Feb  4 16:43:40 2016
-Date edited:  
+Date edited:
 """
 
 import os
@@ -32,7 +32,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
            saturn_partition='batch',nersc_repo='atom',
            time_factor=1.0,C1_version='1.9',mesh_type='rw',mesh_resolution='normal',
            adapt_coil_file=None,adapt_current_file=None,adapt_coil_delta=None):
-    
+
     if task == 'all':
         task = 'setup'
 
@@ -44,13 +44,13 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
         raise ValueError('Parallel mesh adaption not yet functional')
 
     template = os.environ.get('AUTOC1_HOME')+'/templates/'+ machine + '/'
-    
+
 
     C1arch = os.environ.get('AUTOC1_ARCH')
 
 
     # Setup C1input
-    
+
     if not os.path.exists(C1input_base):
         mysh.cp(template+'/C1input_base',C1input_base)
         try:
@@ -70,7 +70,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     idevices     = {'rw':'-1','fw':'1'}
     icsubtracts  = {'rw':'1','fw':'0'}
     imulti_regions = {'rw':'1','fw':'0'}
-    
+
     uni_smb  = {'DIII-D':{'rw':'diiid0.02.smb','fw':'analytic-8K.smb'},
                 'NSTX-U':{'rw':'nstxu0.02.smb'},
                 'AUG':   {'rw':'aug0.02.smb'},
@@ -92,14 +92,14 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 'EAST':  {'rw':'east-0.02-2.50-4.00.txt'},
                 'JET':   {'rw':'jet-0.02-2.5-4.0.txt',
                           'fw':'analytic.txt'}}
-    
+
     coils = {'DIII-D':['iu','il'],
              'NSTX-U':['iu','il'],
              'AUG':   ['iu','il'],
              'KSTAR': ['tfec','mfec','bfec'],
              'EAST':  ['iu','il'],
              'JET':   []}
-    
+
     C1input_options = {'efit':{'ntimemax':'0',
                                'ntimepr':'1',
                                'iread_eqdsk':'1',
@@ -497,18 +497,18 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                                            '--ntasks=192',
                                            '--time=%d:00:00'%(2*time_factor)]}
     }
-    
-    
+
+
     base_files = ['batch_slurm','coil.dat',
                   uni0_smb[machine][mesh_type],uni_txt[machine][mesh_type]]
-        
+
     if task == 'setup':
 
-        print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-        print 'Setting up equilibrium files in efit/'
-        print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-        print
-        
+        print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+        print('Setting up equilibrium files in efit/')
+        print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+        print()
+
         os.chdir(setup_folder)
 
         if not OMFIT:
@@ -522,207 +522,207 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             call(['a2cc', 'a0.0'], stdout=fc)
             fc.close()
             os.remove('a0.0')
-        
-            
+
+
         if interactive:
             next = '-'
-                
+
             while next not in ['Y','N']:
-                   
+
                 next = raw_input('>>> Would you like to extend profile_ne and profile_te? (Y/N) ')
-            
+
                 if next == 'Y':
-                    print  "Trying: extend_profile('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)"
+                    print("Trying: extend_profile('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)")
                     loop_extprof('profile_ne',minval=1e-2,psimax=1.1,psimin=0.95,
                                  center=0.98,width=0.01,smooth=None)
-                    os.rename('profile_ne.extpy','profile_ne')                
-                    
-                    print  "Trying: extend_profile('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)"
+                    os.rename('profile_ne.extpy','profile_ne')
+
+                    print("Trying: extend_profile('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,center=0.98,width=0.01,smooth=None)")
                     loop_extprof('profile_te',minval=1e-4,psimax=1.1,psimin=0.95,
-                                 center=0.98,width=0.01,smooth=None)                
+                                 center=0.98,width=0.01,smooth=None)
                     os.rename('profile_te.extpy','profile_te')
-                    
-                    print
-                    print  'Using extended profiles'
-                    print
+
+                    print()
+                    print('Using extended profiles')
+                    print()
                 elif next == 'N':
-                    print  'Using default profiles'
+                    print('Using default profiles')
                 else:
-                    print '*** Improper response ***'
-        
+                    print('*** Improper response ***')
+
         os.chdir('..')
-    
+
         task = 'efit'
-        
-        print
-        print
-    
+
+        print()
+        print()
+
     else:
-        print 'Skipping setup of equilibrium files'
-        print
-        
-    
+        print('Skipping setup of equilibrium files')
+        print()
+
+
     if task == 'efit':
-    
-        print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-        print 'Calculating EFIT equilibrium in uni_efit/'
-        print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-        print
-    
+
+        print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+        print('Calculating EFIT equilibrium in uni_efit/')
+        print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+        print()
+
         # create folder
         efit_folder = 'uni_efit'
         if os.path.isdir(efit_folder):
-            print 'Warning:  '+efit_folder+' exists and may be overwritten'
+            print('Warning:  '+efit_folder+' exists and may be overwritten')
         os.mkdir(efit_folder)
-        
+
         # load necessary files
         for f in base_files:
             mysh.cp(template+f,efit_folder+'/'+f)
         load_equil(setup_folder,efit_folder)
         mysh.cp(C1input_base,efit_folder+'/C1input')
         os.chdir(efit_folder)
-        
+
         # modify C1input file
         C1input_efit = dict(C1input_options[task])
         if C1input_mod is not None:
             C1input_efit.update(C1input_mod)
         mod_C1input(C1input_efit)
-        
+
         # modify and sumbit batch_slurm
         sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
         sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
         submit_batch = ['sbatch']+slurm_options[C1arch][task]+['batch_slurm']
         write_command(submit_batch)
         call(submit_batch)
-        print
-        
+        print()
+
         if machine in ['AUG']:
             while not os.path.exists('time_000.h5'):
                 sleep(10)
             mysh.cp(template+'get_aug_currents.pro','./get_aug_currents.pro')
             call("\idl -e '@get_aug_currents'",shell=True)
-        
+
         os.chdir('..')
-    
+
         task = 'uni_equil'
-        
-        print
-        print
+
+        print()
+        print()
     else:
-        print 'Skipping calculation of EFIT equilibrium'
-        print
-        
-    
+        print('Skipping calculation of EFIT equilibrium')
+        print()
+
+
     if task == 'uni_equil':
-    
-        print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-        print 'Calculating equilibrium with M3D-C1 GS solver in uni_equil/'
-        print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-        print
-    
+
+        print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+        print('Calculating equilibrium with M3D-C1 GS solver in uni_equil/')
+        print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+        print()
+
         uni_equil_folder = 'uni_equil'
         if os.path.isdir(uni_equil_folder):
-            print 'Warning:  '+uni_equil_folder+' exists and may be overwritten'
+            print('Warning:  '+uni_equil_folder+' exists and may be overwritten')
         os.mkdir(uni_equil_folder)
-        
+
         for f in base_files:
             mysh.cp(template+f,uni_equil_folder+'/'+f)
         load_equil(setup_folder,uni_equil_folder)
         mysh.cp(C1input_base,uni_equil_folder+'/C1input')
         os.chdir(uni_equil_folder)
-        
-        
+
+
         C1input_uni_equil = dict(C1input_options[task])
         if C1input_mod is not None:
             C1input_uni_equil.update(C1input_mod)
         mod_C1input(C1input_uni_equil)
-        
+
         sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
         sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
         submit_batch = ['sbatch']+slurm_options[C1arch][task]+['batch_slurm']
-        
+
         if interactive:
             while True:
                 min_iter = raw_input('>>> Please enter minimum iteration number: ')
-    
+
                 try:
                     min_iter = int(min_iter)
                     if min_iter < 1:
-                        print '*** min_iter must be greater than or equal to 1 ***'                    
+                        print('*** min_iter must be greater than or equal to 1 ***')
                     else:
                         break
                 except ValueError:
-                    print '*** min_iter must be an integer ***'
+                    print('*** min_iter must be an integer ***')
         else:
             min_iter = 1
-        
+
         iter = 0
         for iter in range(1,min_iter):
-            
+
             write_command(submit_batch)
             call(submit_batch)
-            print
+            print()
             while not os.path.exists('time_000.h5'):
                 sleep(10)
-            print  '>>> iter '+str(iter)+' time_000.h5 created'
-            print check_output('grep "Final error in GS solution" C1stdout',shell=True)
-            
+            print('>>> iter '+str(iter)+' time_000.h5 created')
+            print(check_output('grep "Final error in GS solution" C1stdout',shell=True))
+
             os.mkdir('iter_'+str(iter))
             move_iter('iter_'+str(iter)+'/')
-            
+
         next = 'Y'
         iter += 1
-        
+
         while next != 'N':
-        
+
             write_command(submit_batch)
             call(submit_batch)
-            print
+            print()
             while not os.path.exists('time_000.h5'):
                 sleep(10)
-            print
-            print  '>>> iter '+str(iter)+' time_000.h5 created'
-            print check_output('grep "Final error in GS solution" C1stdout',shell=True)
+            print()
+            print('>>> iter '+str(iter)+' time_000.h5 created')
+            print(check_output('grep "Final error in GS solution" C1stdout',shell=True))
             os.mkdir('iter_'+str(iter))
             move_iter('iter_'+str(iter)+'/')
-        
+
             if interactive:
-                
-                print '>>> Check the equilibrium match for iter_'+str(iter)
-            
+
+                print('>>> Check the equilibrium match for iter_'+str(iter))
+
                 next = '-'
-                
+
                 while next not in ['Y','N']:
-                    
+
                     next = raw_input('>>> Would you like to do another iteration? (Y/N) ')
-                    
+
                     if next == 'Y':
                         iter += 1
                     elif next == 'N':
                         break
                     else:
-                        print '*** Improper response ***'
+                        print('*** Improper response ***')
             else:
                 next = 'N'
-            
-        else: 
-            print '>>> Continuing to mesh adaptation'
-            print '>>> Check the equilibrium match for iter_'+str(iter)
-            
-        
-        print
-        print '>>> Stopped equilibrium iteration after ',iter,' iterations'
-        
-        os.chdir('..')        
-        
+
+        else:
+            print('>>> Continuing to mesh adaptation')
+            print('>>> Check the equilibrium match for iter_'+str(iter))
+
+
+        print()
+        print('>>> Stopped equilibrium iteration after ',iter,' iterations')
+
+        os.chdir('..')
+
         if interactive:
-            
+
             next = '-'
-                
+
             while next not in ['Y','N']:
-                
+
                 next = raw_input('>>> Would you like to continue onto mesh adaptation? (Y/N) ')
-    
+
                 if next == 'Y':
                     mysh.cp(uni_equil_folder+'/iter_'+str(iter)+'/current.dat',
                             uni_equil_folder+'/current.dat.good')
@@ -730,35 +730,35 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 elif next == 'N':
                     return
                 else:
-                    print '*** Improper response ***'
-        
+                    print('*** Improper response ***')
+
         else:
-            
+
             plot_script = os.environ.get('AUTOC1_HOME')+'/python/plot_equil_check.py'
             Popen([sys.executable,'-u',plot_script])
             mysh.cp(uni_equil_folder+'/iter_'+str(iter)+'/current.dat',
                     uni_equil_folder+'/current.dat.good')
-                    
-    
+
+
         task = 'adapt'
-        
-        print
-        print
-        
+
+        print()
+        print()
+
     else:
-        print 'Skipping calculation of equilibrium with M3D-C1 GS solver'
-        print
-    
+        print('Skipping calculation of equilibrium with M3D-C1 GS solver')
+        print()
+
     if task == 'adapt':
-        
+
         adapt_folder = def_folder(mesh_type,'adapt')
         os.mkdir(adapt_folder)
 
-        print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-        print 'Adapting mesh to equilibrium in %s/'%adapt_folder
-        print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-        print
-    
+        print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+        print('Adapting mesh to equilibrium in %s/'%adapt_folder)
+        print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+        print()
+
         for f in base_files:
             mysh.cp(template+f,adapt_folder+'/'+f)
         mysh.cp(template+'sfp_'+mesh_resolution,adapt_folder+'/sizefieldParam')
@@ -773,52 +773,52 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 mysh.cp(adapt_coil_file,adapt_folder+'/adapt_coil.dat')
                 mysh.cp(adapt_current_file,adapt_folder+'/adapt_current.dat')
             os.chdir(adapt_folder)
-        
+
             C1input_adapt = dict(C1input_options[task])
             if C1input_mod is not None:
                 C1input_adapt.update(C1input_mod)
             mod_C1input(C1input_adapt)
-        
+
             sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
             sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
             submit_batch = ['sbatch']+slurm_options[C1arch][task][parallel_adapt]+['batch_slurm']
             write_command(submit_batch)
             call(submit_batch)
-            print
-            
-            print  '>>> Wait for adapted0.smb to be created'
+            print()
+
+            print('>>> Wait for adapted0.smb to be created')
             while not os.path.exists('adapted0.smb'):
                 sleep(10)
-        
-            print  '>>> Mesh adaptation complete'
+
+            print('>>> Mesh adaptation complete')
 
             with open('job_id.txt','r') as f:
                 jobid = f.read().rstrip('\n')
-            print  '>>> Killing m3dc1_adapt job #'+jobid
+            print('>>> Killing m3dc1_adapt job #'+jobid)
             call(['scancel',jobid])
-    
+
             os.chdir('..')
 
         else:
             mysh.cp(adapted_mesh,adapt_folder+'/adapted0.smb')
-            print
-            print  '>>> Using provided adapted mesh'
+            print()
+            print('>>> Using provided adapted mesh')
 
         task = 'calculation'
-        
-        print
-        print
-    
+
+        print()
+        print()
+
     else:
-        print 'Skipping mesh adaptation'
-        print
-    
-    
+        print('Skipping mesh adaptation')
+        print()
+
+
     if interactive:
         calcs = None
     else:
         ncalc = 0
-    
+
     opts = {'0':'exit',
             '1':'equilibrium',
             '2':'stability',
@@ -828,139 +828,139 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     while True:
 
         if task == 'calculation':
-            
+
             if interactive:
-                
-                print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-                print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-                print
-                print '>>> What kind of calculation would you like to perform?'
-                print '>>> 1)  Equilibrium'
-                print '>>> 2)  Linear stability'
-                print '>>> 3)  Linear 3D response'
-                print '>>> 4)  Examine results with IDL'
-                print
-                
+
+                print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+                print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+                print()
+                print('>>> What kind of calculation would you like to perform?')
+                print('>>> 1)  Equilibrium')
+                print('>>> 2)  Linear stability')
+                print('>>> 3)  Linear 3D response')
+                print('>>> 4)  Examine results with IDL')
+                print()
+
                 option = '-'
-                
+
                 while option not in opts:
                     option = raw_input('>>> Please enter the desired option (1-4, 0 to exit): ')
                     if option not in opts:
-                        print '*** Improper response ***'
-                        
-                print
-                
+                        print('*** Improper response ***')
+
+                print()
+
                 task = opts[option]
-                
+
             else:
-                    
+
                 if ncalc == len(calcs):
                     task = exit
                 else:
-                    
+
                     if len(calcs[ncalc]) == 3:
                         option, ntor, nflu = calcs[ncalc]
                         extra = None
                     elif len(calcs[ncalc]) == 4:
                         option, ntor, nflu, extra = calcs[ncalc]
                     else:
-                        print "*** Improper calc length ***"
-                        print "Skipping ", calcs[ncalc]
+                        print("*** Improper calc length ***")
+                        print("Skipping ", calcs[ncalc])
                         ncalc += 1
                         continue
-                        
+
                     task = opts[option]
-                    print task + ' calculation'
+                    print(task + ' calculation')
                     if ntor is not None:
-                        print '   n='+ntor 
+                        print('   n='+ntor)
                     if nflu is not None:
-                        print '   '+nflu+'-fluid'
-                    print
-        
+                        print('   '+nflu+'-fluid')
+                    print()
+
         if task == 'exit':
-            print 'Exiting'
+            print('Exiting')
             return
-            
+
         elif task == 'equilibrium':
-            
-            print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-            print 'Calculate equilibrium with adapted mesh'
-            print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-            print
-            
+
+            print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            print('Calculate equilibrium with adapted mesh')
+            print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            print()
+
             equil_folder = def_folder(mesh_type,'equil')
             os.mkdir(equil_folder)
-            
+
             for f in base_files:
                 mysh.cp(template+f,equil_folder+'/'+f)
             load_equil(adapt_folder,equil_folder)
             mysh.cp(C1input_base,equil_folder+'/C1input')
-            mysh.cp(adapt_folder+'/adapted0.smb', 
+            mysh.cp(adapt_folder+'/adapted0.smb',
                     equil_folder+'/adapted0.smb')
             os.chdir(equil_folder)
-            
+
             C1input_equil = dict(C1input_options[task])
             if C1input_mod is not None:
                 C1input_equil.update(C1input_mod)
             mod_C1input(C1input_equil)
-        
+
             sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
             sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
             submit_batch = ['sbatch']+slurm_options[C1arch][task]+['batch_slurm']
             write_command(submit_batch)
             call(submit_batch)
-            print
-            
-            print  '>>> Job m3dc1_equil submitted'
-            
+            print()
+
+            print('>>> Job m3dc1_equil submitted')
+
             if interactive:
-                print  '>>> You can do other calculations in the meantime'
+                print('>>> You can do other calculations in the meantime')
                 raw_input('>>> Press <ENTER> twice to start another calculation')
                 raw_input('>>> Press <ENTER> again to proceed')
-            
+
             os.chdir('..')
-            print
-            print
-    
+            print()
+            print()
+
         elif task == 'stability':
-            
-            print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-            print 'Calculate linear stability'
-            print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-            print
-        
+
+            print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            print('Calculate linear stability')
+            print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            print()
+
             if interactive:
                 while True:
                     ntor = raw_input('>>> Please enter the desired ntor: ')
-    
+
                     try:
                         int(ntor)
                         break
                     except ValueError:
-                        print '*** ntor must be an integer ***'
-    
-    
+                        print('*** ntor must be an integer ***')
+
+
                 nflu = ''
                 while nflu not in ['1','2']:
-                    
+
                     nflu = raw_input('>>> How many fluids? (1 or 2) ')
-                        
+
                     if nflu not in ['1','2']:
-                        print '*** Improper response ***'                
-                
-                print
-            
-            print 'Calculating stability for '+nflu+'F and ntor = ' + ntor
-    
+                        print('*** Improper response ***')
+
+                print()
+
+            print('Calculating stability for '+nflu+'F and ntor = ' + ntor)
+
             ndir = 'n='+ntor+'/'
-            
+
             if not os.path.isdir(ndir):
                 os.mkdir(ndir)
             os.chdir(ndir)
-            
+
             stab_folder = def_folder(rot,nflu+'f_stab')
             os.mkdir(stab_folder)
-            
+
             for f in base_files:
                 mysh.cp(template+f,stab_folder+'/'+f)
             load_equil('../'+adapt_folder,stab_folder)
@@ -968,7 +968,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             mysh.cp('../'+adapt_folder+'/adapted0.smb',
                     stab_folder+'/adapted0.smb')
             os.chdir(stab_folder)
-            
+
             C1input_stab = dict(C1input_options[task])
             C1input_stab.update({'ntor':ntor})
             if nflu == '1':
@@ -983,122 +983,125 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             if C1input_mod is not None:
                 C1input_stab.update(C1input_mod)
             mod_C1input(C1input_stab)
-            
+
             sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
             sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
             submit_batch = ['sbatch']+slurm_options[C1arch][task]+['batch_slurm']
             write_command(submit_batch)
             call(submit_batch)
-            print
-            print  '>>> Job m3dc1_stab submitted'
-            
+            print()
+            print('>>> Job m3dc1_stab submitted')
+
             if interactive:
-                print  '>>> You can do other calculations in the meantime'
+                print('>>> You can do other calculations in the meantime')
                 raw_input('>>> Press <ENTER> twice to start another calculation')
                 raw_input('>>> Press <ENTER> again to proceed')
-            
+
             os.chdir('../..')
-            print
-            print
-            
+            print()
+            print()
+
         elif task == 'response':
-            
-            print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-            print 'Calculate 3D plasma response'
-            print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-            print
-                
-            if interactive:  
+
+            print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            print('Calculate 3D plasma response')
+            print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            print()
+
+            if interactive:
                 while True:
                     ntor = raw_input('>>> Please enter the desired ntor: ')
-    
+
                     try:
                         int(ntor)
                         break
                     except ValueError:
-                        print '*** ntor must be an integer ***'
-                    
+                        print('*** ntor must be an integer ***')
+
                 nflu = ''
                 while nflu not in ['1','2']:
-                    
+
                     nflu = raw_input('>>> How many fluids? (1 or 2) ')
-                        
+
                     if nflu not in ['1','2']:
-                        print '*** Improper response ***'
-                             
-                
-                print
-                
-            print 'Calculating '+nflu+'F response for ntor = ' + ntor
-    
+                        print('*** Improper response ***')
+
+
+                print()
+
+            print('Calculating '+nflu+'F response for ntor = ' + ntor)
+
             ndir = 'n='+ntor+'/'
-            
+
             if not os.path.isdir(ndir):
                 os.mkdir(ndir)
             os.chdir(ndir)
-            
+
             C1input_resp = dict(C1input_options[task])
             C1input_resp.update({'ntor':ntor})
             if nflu == '1':
                 C1input_resp.update({'db_fac':'0.0'})
             elif nflu == '2':
                 C1input_resp.update({'db_fac':'1.0'})
-                if C1_version=='1.8':
-                    	C1input_resp.update({'igs_extend_diamag':'1'})
+                try:
+                    if float(C1_version) > 1.7:
+                        C1input_stab.update({'igs_extend_diamag':'1'})
+                except ValueError:
+                    C1input_stab.update({'igs_extend_diamag':'1'})
             if C1input_mod is not None:
                 C1input_resp.update(C1input_mod)
-            
+
             if extra == None:
                 # Using M3D-C1 window pane model
-           	for coil in coils[machine]:
-           	    
-           	    resp_folder = def_folder(rot,nflu+'f_'+coil)
-           	    os.mkdir(resp_folder)
-           	    
-           	    for f in base_files:
-           	        mysh.cp(template+f,resp_folder+'/'+f)
-           	    mysh.cp(template+'rmp_coil_'+coil+'.dat',
-           	            resp_folder+'/rmp_coil.dat')
-           	    mysh.cp(template+'rmp_current_'+coil+'.dat',
-           	            resp_folder+'/rmp_current.dat')
-           	    load_equil('../'+adapt_folder,resp_folder)
-           	    mysh.cp('../'+C1input_base,resp_folder+'/C1input')
-           	    mysh.cp('../'+adapt_folder+'/adapted0.smb', 
-           	            resp_folder+'/adapted0.smb')
-           	    os.chdir(resp_folder)
-           	    
-           	    mod_C1input(C1input_resp)
-           	    
-           	    job_name = 'm3dc1_'+coil
-           	    sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
-           	    sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
-           	    submit_batch = ['sbatch']+slurm_options[C1arch][task]
-           	    submit_batch += ['--job-name='+job_name]+['batch_slurm']
-           	    write_command(submit_batch)
-           	    call(submit_batch)
-           	
-           	    os.chdir('..')
-           	    print  '>>> Job ' + job_name + ' submitted'
+               for coil in coils[machine]:
+
+                   resp_folder = def_folder(rot,nflu+'f_'+coil)
+                   os.mkdir(resp_folder)
+
+                   for f in base_files:
+                       mysh.cp(template+f,resp_folder+'/'+f)
+                   mysh.cp(template+'rmp_coil_'+coil+'.dat',
+                           resp_folder+'/rmp_coil.dat')
+                   mysh.cp(template+'rmp_current_'+coil+'.dat',
+                           resp_folder+'/rmp_current.dat')
+                   load_equil('../'+adapt_folder,resp_folder)
+                   mysh.cp('../'+C1input_base,resp_folder+'/C1input')
+                   mysh.cp('../'+adapt_folder+'/adapted0.smb',
+                           resp_folder+'/adapted0.smb')
+                   os.chdir(resp_folder)
+
+                   mod_C1input(C1input_resp)
+
+                   job_name = 'm3dc1_'+coil
+                   sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
+                   sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
+                   submit_batch = ['sbatch']+slurm_options[C1arch][task]
+                   submit_batch += ['--job-name='+job_name]+['batch_slurm']
+                   write_command(submit_batch)
+                   call(submit_batch)
+
+                   os.chdir('..')
+                   print('>>> Job ' + job_name + ' submitted')
 
             else:
                 # assuming extra is the PROBE_G filename
                 resp_folder = def_folder(rot,nflu+'f_probeg')
                 os.mkdir(resp_folder)
-           	    
+
                 for f in base_files:
                     mysh.cp(template+f,resp_folder+'/'+f)
                 load_equil('../'+adapt_folder,resp_folder)
                 mysh.cp('../'+C1input_base,resp_folder+'/C1input')
-                mysh.cp('../'+adapt_folder+'/adapted0.smb', 
+                mysh.cp('../'+adapt_folder+'/adapted0.smb',
                         resp_folder+'/adapted0.smb')
                 os.chdir(resp_folder)
-                
+
                 os.symlink('../../'+extra,'error_field')
                 C1input_resp.update({'irmp':'0'})
                 C1input_resp.update({'iread_ext_field':'1'})
                 C1input_resp.update({'extsubtract':'1'})
                 mod_C1input(C1input_resp)
-           	    
+
                 job_name = 'm3dc1_probeg'
                 sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
                 sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
@@ -1106,74 +1109,74 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                 submit_batch += ['--job-name='+job_name]+['batch_slurm']
                 write_command(submit_batch)
                 call(submit_batch)
-           	
+
                 os.chdir('..')
-                print  '>>> Job ' + job_name + ' submitted'
+                print('>>> Job ' + job_name + ' submitted')
 
 
-            print
-            
-            if interactive:            
-                print  '>>> You can do other calculations in the meantime'
+            print()
+
+            if interactive:
+                print('>>> You can do other calculations in the meantime')
                 raw_input('>>> Press <ENTER> twice to start another calculation')
                 raw_input('>>> Press <ENTER> again to proceed')
-                
+
             os.chdir('..')
-            print
-            print
-            
+            print()
+            print()
+
         elif task == 'examine':
-            
-            print '>>> Here are some good things to check:'
-            print '>>> Is the adapted equilbrium a good shape match?'
-            print ">>> Is 'jy' a good match to the EFIT?"
-            print ">>> Does 'ne', 'te', 'ti', or 'p' go negative anywhere?"
-            print
-            
+
+            print('>>> Here are some good things to check:')
+            print('>>> Is the adapted equilbrium a good shape match?')
+            print(">>> Is 'jy' a good match to the EFIT?")
+            print(">>> Does 'ne', 'te', 'ti', or 'p' go negative anywhere?")
+            print()
+
             if interactive:
                 next = '-'
-                
+
                 while next not in ['Y','N']:
-                    
+
                     next = raw_input('>>> Would you like to check the quality of the equilibrium? (Y/N) ')
-                    
+
                     if next == 'Y':
-                        print 'Launching IDL for checking quality of the equilibrium'
-                        print 'Recommend the following commands, but modify as need be'
-                        print 'e.g., rw1_equil/ can be replaced by a completed response or stability run in n=2/'
-                        print "plot_shape,['uni_efit/','rw1_equil/']+'C1.h5',rrange=[1.0,2.5],zrange=[-1.25,1.25],thick=3,/iso"
-                        print "plot_flux_average,'jy',-1,file=['uni_efit/','rw1_equil/']+'C1.h5',/mks,/norm,table=39,thick=3,bins=400,points=400"
-                        print "plot_field,'ti',-1,R,Z,file='rw1_equil/C1.h5',/mks,points=400,cutz=0.,/ylog"
-                        print
-                        
+                        print('Launching IDL for checking quality of the equilibrium')
+                        print('Recommend the following commands, but modify as need be')
+                        print('e.g., rw1_equil/ can be replaced by a completed response or stability run in n=2/')
+                        print("plot_shape,['uni_efit/','rw1_equil/']+'C1.h5',rrange=[1.0,2.5],zrange=[-1.25,1.25],thick=3,/iso")
+                        print("plot_flux_average,'jy',-1,file=['uni_efit/','rw1_equil/']+'C1.h5',/mks,/norm,table=39,thick=3,bins=400,points=400")
+                        print("plot_field,'ti',-1,R,Z,file='rw1_equil/C1.h5',/mks,points=400,cutz=0.,/ylog")
+                        print()
+
                         call(['idl'])
-                        
+
                         okay = '-'
-                        
+
                         while okay not in ['Y','N']:
                             okay = '>>> Is the equilibrium good enough to continue? (Y/N) '
-                            
+
                             if okay == 'Y':
                                 continue
                             elif okay == 'N':
                                 return
                             else:
-                                print '*** Improper response ***'
-                    
+                                print('*** Improper response ***')
+
                     elif next == 'N':
-                        print  'Continuing, but equilibrium may have problems'
+                        print('Continuing, but equilibrium may have problems')
                     else:
-                        print '*** Improper response ***'
-            
+                        print('*** Improper response ***')
+
             else:
-                print ">>> In non-interactive mode"
-                print ">>> Please launch IDL separately"
-            
+                print(">>> In non-interactive mode")
+                print(">>> Please launch IDL separately")
+
         task = 'calculation'
         if not interactive:
-            ncalc +=1 
-    
-    return    
+            ncalc +=1
+
+    return
 
 # Loop over extend_profile until it is acceptable to the user
 def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
@@ -1182,38 +1185,38 @@ def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
     good = 'N'
 
     plt.ion()
-    while good is not 'Y': 
+    while good is not 'Y':
 
         extend_profile(filename,minval=minval,psimax=psimax,psimin=psimin,
                        center=center,width=width,smooth=smooth)
-        
+
         good = raw_input('>>> Is this profile extension good enough? (Y/N) ')
         if good is not 'Y':
             try:
                 minval = float(raw_input('>>> New minval: (<Enter> for same value '+str(minval)+') '))
             except ValueError:
-                print 'minval = '+str(minval)+' unchanged'
-            
+                print('minval = '+str(minval)+' unchanged')
+
             try:
                 psimax = float(raw_input('>>> New psimax: (<Enter> for same value '+str(psimax)+') '))
             except ValueError:
-                print 'psimax = '+str(psimax)+' unchanged'
-            
+                print('psimax = '+str(psimax)+' unchanged')
+
             try:
                 psimin = float(raw_input('>>> New psimin: (<Enter> for same value '+str(psimin)+') '))
             except ValueError:
-                print 'psimin = '+str(psimin)+' unchanged'
-            
+                print('psimin = '+str(psimin)+' unchanged')
+
             try:
                 center = float(raw_input('>>> New center: (<Enter> for same value '+str(center)+') '))
             except ValueError:
-                print 'center = '+str(center)+' unchanged'
-            
+                print('center = '+str(center)+' unchanged')
+
             try:
                 width = float(raw_input('>>> New width: (<Enter> for same value '+str(width)+') '))
             except ValueError:
-                print 'width = '+str(width)+' unchanged'
-            
+                print('width = '+str(width)+' unchanged')
+
             try:
                 sm_str = raw_input('>>> New smooth: (<Enter> for same value '+str(smooth)+') ')
                 if sm_str is 'None':
@@ -1221,34 +1224,33 @@ def loop_extprof(filename,minval=0.,psimax=1.05,psimin=0.95,center=0.98,
                 else:
                     smooth = float(sm_str)
             except ValueError:
-                print 'smooth = '+str(smooth)+' unchanged'
-            
-    
+                print('smooth = '+str(smooth)+' unchanged')
+
+
     plt.ioff()
     plt.close('all')
-    
+
     return
-        
-        
+
+
 def write_command(submit_batch):
-    
+
     with open("submit_command","w") as h:
         h.write(' '.join(submit_batch))
         h.write('\n')
     return
 
 def def_folder(pre,post):
-    
+
     i = 1
-    
+
     while True:
-        
+
         folder = pre+str(i)+'_'+post
 
         if os.path.isdir(folder):
             i += 1
         else:
             break
-        
+
     return folder
-    
