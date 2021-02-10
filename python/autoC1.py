@@ -65,9 +65,10 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
     iread_eqdsks = {'DIII-D':{'rw':'3','fw':1},
                     'NSTX-U':{'rw':'3'},
                     'AUG':{'rw':'1'},
-                    'KSTAR':{'rw':'3'},
+                    'KSTAR':{'rw':'3','fw':1},
                     'EAST':{'rw':'3'},
-                    'JET':{'rw':'3','fw':1}}
+                    'JET':{'rw':'3','fw':1},
+                    'ITER':{'rw':'3','fw':1}}
     idevices     = {'rw':'-1','fw':'1'}
     icsubtracts  = {'rw':'1','fw':'0'}
     imulti_regions = {'rw':'1','fw':'0'}
@@ -76,27 +77,36 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                           'fw':'analytic-8K.smb'},
                 'NSTX-U':{'rw':'nstxu0.02.smb'},
                 'AUG':   {'rw':'aug0.02.smb'},
-                'KSTAR': {'rw':'kstar-0.02-3.00-4.00-7K.smb'},
+                'KSTAR': {'rw':'kstar-0.02-3.00-4.00-7K.smb',
+                          'fw':'analytic-10K.smb'},
                 'EAST':  {'rw':'east-0.02-2.50-4.00-6K.smb'},
                 'JET':   {'rw':'jet-0.02-2.5-4.0-13K.smb',
+                          'fw':'analytic-10K.smb'},
+                'ITER':  {'rw':'iter-0.05-6.0-9.0-19K.smb',
                           'fw':'analytic-10K.smb'}}
 
     uni0_smb = {'DIII-D':{'rw':'diiid0.020.smb',
                           'fw':'analytic-8K0.smb'},
-                'NSTX-U': {'rw':'nstxu0.020.smb'},
-                'AUG':    {'rw':'aug0.020.smb'},
-                'KSTAR':  {'rw':'kstar-0.02-3.00-4.00-7K0.smb'},
-                'EAST':   {'rw':'east-0.02-2.50-4.00-6K0.smb'},
-                'JET':    {'rw':'jet-0.02-2.5-4.0-13K0.smb',
-                           'fw':'analytic-10K0.smb'}}
+                'NSTX-U':{'rw':'nstxu0.020.smb'},
+                'AUG':   {'rw':'aug0.020.smb'},
+                'KSTAR': {'rw':'kstar-0.02-3.00-4.00-7K0.smb',
+                          'fw':'analytic-10K0.smb'},
+                'EAST':  {'rw':'east-0.02-2.50-4.00-6K0.smb'},
+                'JET':   {'rw':'jet-0.02-2.5-4.0-13K0.smb',
+                          'fw':'analytic-10K0.smb'},
+                'ITER':  {'rw':'iter-0.05-6.0-9.0-19K0.smb',
+                          'fw':'analytic-10K0.smb'}}
         
     uni_txt  = {'DIII-D':{'rw':'diiid0.02.txt',
                           'fw':'analytic.txt'},
                 'NSTX-U':{'rw':'nstxu0.02.txt'},
                 'AUG':   {'rw':'aug0.02.txt'},
-                'KSTAR': {'rw':'kstar-0.02-3.00-4.00.txt'},
+                'KSTAR': {'rw':'kstar-0.02-3.00-4.00.txt',
+                          'fw':'analytic.txt'},
                 'EAST':  {'rw':'east-0.02-2.50-4.00.txt'},
                 'JET':   {'rw':'jet-0.02-2.5-4.0.txt',
+                          'fw':'analytic.txt'},
+                'ITER':  {'rw':'iter-0.05-6.0-9.0.txt',
                           'fw':'analytic.txt'}}
     if mesh_type[0] == 'c':
         uni_txt[machine].update({mesh_type:mesh_model})
@@ -114,7 +124,8 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
              'AUG':   ['iu','il'],
              'KSTAR': ['tfec','mfec','bfec'],
              'EAST':  ['iu','il'],
-             'JET':   []}
+             'JET':   [],
+             'ITER':  []}
 
     C1input_options = {'efit':{'ntimemax':'0',
                                'ntimepr':'1',
@@ -493,7 +504,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             mysh.cp(r'g*.*','geqdsk')
             extract_profiles(machine=machine)
 
-        if machine in ['DIII-D','NSTX-U','KSTAR','EAST']:
+        if machine in ['DIII-D','NSTX-U','KSTAR','EAST','ITER']:
 
             fc = open('current.dat','w')
             mysh.cp(r'a*.*','a0.0')
@@ -1040,35 +1051,34 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
 
             if extra == None:
                 # Using M3D-C1 window pane model
-           	for coil in coils[machine]:
+                for coil in coils[machine]:
+                    resp_folder = def_folder(rot,nflu+'f_'+coil)
+                    os.mkdir(resp_folder)
 
-           	    resp_folder = def_folder(rot,nflu+'f_'+coil)
-           	    os.mkdir(resp_folder)
+                    for f in base_files:
+                        mysh.cp(f,resp_folder+'/'+os.path.basename(f))
+                    mysh.cp(template+'rmp_coil_'+coil+'.dat',
+                            resp_folder+'/rmp_coil.dat')
+                    mysh.cp(template+'rmp_current_'+coil+'.dat',
+                            resp_folder+'/rmp_current.dat')
+                    load_equil('../'+adapt_folder,resp_folder)
+                    mysh.cp('../'+C1input_base,resp_folder+'/C1input')
+                    mysh.cp('../'+adapt_folder+'/adapted0.smb',
+                            resp_folder+'/adapted0.smb')
+                    os.chdir(resp_folder)
 
-           	    for f in base_files:
-           	        mysh.cp(f,resp_folder+'/'+os.path.basename(f))
-           	    mysh.cp(template+'rmp_coil_'+coil+'.dat',
-           	            resp_folder+'/rmp_coil.dat')
-           	    mysh.cp(template+'rmp_current_'+coil+'.dat',
-           	            resp_folder+'/rmp_current.dat')
-           	    load_equil('../'+adapt_folder,resp_folder)
-           	    mysh.cp('../'+C1input_base,resp_folder+'/C1input')
-           	    mysh.cp('../'+adapt_folder+'/adapted0.smb',
-           	            resp_folder+'/adapted0.smb')
-           	    os.chdir(resp_folder)
+                    mod_C1input(C1input_resp)
 
-           	    mod_C1input(C1input_resp)
+                    job_name = 'm3dc1_'+coil
+                    sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
+                    sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
+                    submit_batch = ['sbatch']+slurm_options[C1arch][task]
+                    submit_batch += ['--job-name='+job_name]+['batch_slurm']
+                    write_command(submit_batch)
+                    call(submit_batch)
 
-           	    job_name = 'm3dc1_'+coil
-           	    sedpy('BASH_COMMAND',bash_commands[task],'batch_slurm')
-           	    sedpy('EXEC_COMMAND',exec_commands[C1arch]+exec_args[task],'batch_slurm')
-           	    submit_batch = ['sbatch']+slurm_options[C1arch][task]
-           	    submit_batch += ['--job-name='+job_name]+['batch_slurm']
-           	    write_command(submit_batch)
-           	    call(submit_batch)
-
-           	    os.chdir('..')
-           	    print('>>> Job ' + job_name + ' submitted')
+                    os.chdir('..')
+                    print('>>> Job ' + job_name + ' submitted')
 
             else:
                 # assuming extra is the PROBE_G filename
