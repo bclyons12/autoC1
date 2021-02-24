@@ -234,15 +234,16 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                      'cori-haswell':'srun -c 2 --cpu_bind=cores -n ',
                      'cori-knl':'srun -c 4 --cpu_bind=cores -n '}
 
-    standard_ea = '$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 200 >& C1stdout'
-    adapt_ea = {False:'1 m3dc1_2d >& C1stdout',
-                True: '$SLURM_NTASKS m3dc1_2d >& C1stdout'}
-    exec_args = {'efit':standard_ea,
-                 'uni_equil':standard_ea,
+    real_ea    = '$SLURM_NTASKS m3dc1_2d -pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 200 >& C1stdout'
+    complex_ea = '$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 200 >& C1stdout'
+    adapt_ea = {False:'1 m3dc1_2d -pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 200 >& C1stdout',
+                True: real_ea}
+    exec_args = {'efit':real_ea,
+                 'uni_equil':real_ea,
                  'adapt':adapt_ea[parallel_adapt],
-                 'equilibrium':standard_ea,
-                 'stability':standard_ea,
-                 'response':standard_ea}
+                 'equilibrium':real_ea,
+                 'stability':complex_ea,
+                 'response':complex_ea}
 
     Psmall = {'sunfire':'general',
               'iris':'medium',
@@ -782,9 +783,12 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             print()
 
             print('>>> Wait for adapted0.smb to be created')
-            while not os.path.exists('adapted0.smb'):
+            while not (os.path.exists('adapted0.smb') or os.path.exists('ts0-adapted0.smb')):
                 sleep(10)
 
+            if os.path.exists('ts0-adapted0.smb'):
+                print('>>> Transfering ts0-adapted0.smb to adapted0.smb')
+                mysh.mv('ts0-adapted0.smb', 'adapted0.smb')
             print('>>> Mesh adaptation complete')
 
             with open('job_id.txt','r') as f:
