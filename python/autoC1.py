@@ -244,13 +244,13 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                  'stability':standard_ea,
                  'response':standard_ea}
 
-    Psmall = {'sunfire':'general',
+    Psmall = {'sunfire':'m3dc1',
               'iris':'medium',
               'saturn':saturn_partition,
               'cori-haswell':'debug',
               'cori-knl':'debug'}
 
-    Plarge = {'sunfire':'general',
+    Plarge = {'sunfire':'m3dc1',
               'iris':'medium',
               'saturn':saturn_partition,
               'cori-haswell':'regular',
@@ -504,7 +504,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             mysh.cp(r'g*.*','geqdsk')
             extract_profiles(machine=machine)
 
-        if machine in ['DIII-D','NSTX-U','KSTAR','EAST','ITER']:
+        if (mesh_type=='rw') and (machine in ['DIII-D','NSTX-U','KSTAR','EAST','ITER']):
 
             fc = open('current.dat','w')
             mysh.cp(r'a*.*','a0.0')
@@ -782,7 +782,7 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             print()
 
             print('>>> Wait for adapted0.smb to be created')
-            while not os.path.exists('adapted0.smb'):
+            while not (os.path.exists('adapted0.smb') or os.path.exists('ts0-adapted0.smb')):
                 sleep(10)
 
             print('>>> Mesh adaptation complete')
