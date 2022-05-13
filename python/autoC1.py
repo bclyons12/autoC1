@@ -234,9 +234,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                      'cori-haswell':'srun -c 2 --cpu_bind=cores -n ',
                      'cori-knl':'srun -c 4 --cpu_bind=cores -n '}
 
-    real_ea    = '$SLURM_NTASKS m3dc1_2d -pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 200 >& C1stdout'
-    complex_ea = '$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 200 >& C1stdout'
-    adapt_ea = {False:'1 m3dc1_2d -pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 200 >& C1stdout',
+    real_ea    = '$SLURM_NTASKS m3dc1_2d -pc_factor_mat_solver_type mumps -mat_mumps_icntl_14 200 >& C1stdout'
+    complex_ea = '$SLURM_NTASKS m3dc1_2d_complex -pc_factor_mat_solver_type mumps -mat_mumps_icntl_14 200 >& C1stdout'
+    adapt_ea = {False:'1 m3dc1_2d -pc_factor_mat_solver_type mumps -mat_mumps_icntl_14 200 >& C1stdout',
                 True: real_ea}
     exec_args = {'efit':real_ea,
                  'uni_equil':real_ea,
@@ -785,6 +785,9 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
             print('>>> Wait for adapted0.smb to be created')
             while not (os.path.exists('adapted0.smb') or os.path.exists('ts0-adapted0.smb')):
                 sleep(10)
+
+            if os.path.exists('ts0-adapted0.smb'):
+                mysh.cp('ts0-adapted0.smb', 'adapted0.smb')
 
             print('>>> Mesh adaptation complete')
 
