@@ -245,8 +245,12 @@ def autoC1(task='all', machine='DIII-D', calcs=[(0,0,0)],
                  'stability':complex_ea,
                  'response':complex_ea}
 
+    if 10*time_factor <= 30:
+        iris_small = 'short'
+    else:
+        iris_small = 'medium'
     Psmall = {'sunfire':'m3dc1',
-              'iris':'medium',
+              'iris':iris_small,
               'saturn':saturn_partition,
               'cori-haswell':'debug',
               'cori-knl':'debug'}
